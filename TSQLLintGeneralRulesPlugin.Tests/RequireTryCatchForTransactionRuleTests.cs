@@ -57,7 +57,7 @@ public sealed class RequireTryCatchForTransactionRuleTests
     public void Rule_RecognizesTryCatchStructure()
     {
         // This test verifies the rule can be instantiated and processes TRY/CATCH statements
-        var rule = new RequireTryCatchForTransactionRule(null);
+        var rule = new RequireTryCatchForTransactionRule((_, _, _, _) => { });
         Assert.Equal("require-try-catch-for-transaction", rule.RULE_NAME);
     }
 

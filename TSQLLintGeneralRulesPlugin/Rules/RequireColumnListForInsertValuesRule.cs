@@ -42,7 +42,12 @@ namespace TSQLLintGeneralRulesPlugin
         /// <param name="node">The INSERT statement node to visit.</param>
         public override void Visit(InsertStatement node)
         {
-            var specification = node?.InsertSpecification;
+            if (node == null)
+            {
+                return;
+            }
+
+            var specification = node.InsertSpecification;
             if (specification == null)
             {
                 base.Visit(node);
@@ -61,9 +66,9 @@ namespace TSQLLintGeneralRulesPlugin
                 return;
             }
 
-            var target = specification.Target;
-            var line = target?.StartLine ?? node.StartLine;
-            var column = target?.StartColumn ?? node.StartColumn;
+            var line = specification.Target?.StartLine ?? node.StartLine;
+            var column = specification.Target?.StartColumn ?? node.StartColumn;
+
             _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, line, column);
 
             base.Visit(node);

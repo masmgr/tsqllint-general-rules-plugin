@@ -14,7 +14,7 @@ public sealed class RequireXactAbortOnRuleTests
     [Fact]
     public void Rule_IsRegistered()
     {
-        var rule = new RequireXactAbortOnRule(null);
+        var rule = new RequireXactAbortOnRule((_, _, _, _) => { });
         Assert.Equal("require-xact-abort-on", rule.RULE_NAME);
     }
 
@@ -24,7 +24,7 @@ public sealed class RequireXactAbortOnRuleTests
     [Fact]
     public void Rule_HasValidMessage()
     {
-        var rule = new RequireXactAbortOnRule(null);
+        var rule = new RequireXactAbortOnRule((_, _, _, _) => { });
         Assert.NotEmpty(rule.RULE_TEXT);
     }
 
