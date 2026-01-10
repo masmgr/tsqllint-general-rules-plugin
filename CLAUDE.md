@@ -17,23 +17,23 @@ This is a .NET plugin for `TSQLLint` that provides general-purpose SQL linting r
 
 **Build:**
 ```
-dotnet build tsqllint-plugin.sln -c Release
+dotnet build TSQLLintGeneralRulesPlugin.sln -c Release
 ```
 
 **Run all tests:**
 ```
-dotnet test tsqllint-plugin.sln -c Release
+dotnet test TSQLLintGeneralRulesPlugin.sln -c Release
 ```
 
 **Run a single test:**
 ```
-dotnet test tsqllint-plugin.sln -c Release --filter "ClassName"
+dotnet test TSQLLintGeneralRulesPlugin.sln -c Release --filter "ClassName"
 ```
-Example: `dotnet test tsqllint-plugin.sln -c Release --filter "RequireAsForColumnAliasRuleTests"`
+Example: `dotnet test TSQLLintGeneralRulesPlugin.sln -c Release --filter "RequireAsForColumnAliasRuleTests"`
 
 **Pack for NuGet:**
 ```
-dotnet pack tsqllint-plugin/tsqllint-plugin.csproj -c Release -o artifacts/nuget
+dotnet pack TSQLLintGeneralRulesPlugin/TSQLLintGeneralRulesPlugin.csproj -c Release -o artifacts/nuget
 ```
 Note: `artifacts/` directory should not be committed (it contains generated artifacts).
 
@@ -56,10 +56,10 @@ Each rule follows a consistent pattern:
 ### Key File Structure
 
 ```
-tsqllint-plugin/
+TSQLLintGeneralRulesPlugin/
 ├── SqlPlugin.cs              # Main plugin entry point, registers all rules
 ├── Rules/                    # General-purpose rules
-tsqllint-plugin.Tests/
+TSQLLintGeneralRulesPlugin.Tests/
 ├── TestSqlLintRunner.cs      # Test helper for running rules against SQL
 └── *RuleTests.cs             # One test file per rule
 
@@ -69,7 +69,7 @@ docs/
 
 ### Rule Registration
 
-All rules must be registered in [SqlPlugin.cs:25-36](tsqllint-plugin/SqlPlugin.cs#L25-L36):
+All rules must be registered in [SqlPlugin.cs:25-36](TSQLLintGeneralRulesPlugin/SqlPlugin.cs#L25-L36):
 ```csharp
 public IDictionary<string, ISqlLintRule> GetRules() => new Dictionary<string, ISqlLintRule>
 {
@@ -83,7 +83,7 @@ The dictionary key must match the rule's `RULE_NAME` property. All rules use the
 
 ### Full workflow:
 
-1. **Create the rule class** in `tsqllint-plugin/Rules`
+1. **Create the rule class** in `TSQLLintGeneralRulesPlugin/Rules`
    - Use a descriptive name like `PreferCoalesceOverNestedIsNullRule.cs`
    - Implement `ISqlLintRule` and extend `TSqlFragmentVisitor`
    - Use 1-based line/column numbers (T-SQL parser convention)
@@ -92,8 +92,8 @@ The dictionary key must match the rule's `RULE_NAME` property. All rules use the
 2. **Register in SqlPlugin.cs**
    - Add entry to `GetRules()` dictionary with the rule ID and instance
 
-3. **Add or update tests** in `tsqllint-plugin.Tests/`
-   - Use [TestSqlLintRunner.Lint()](tsqllint-plugin.Tests/TestSqlLintRunner.cs) to test rules
+3. **Add or update tests** in `TSQLLintGeneralRulesPlugin.Tests/`
+   - Use [TestSqlLintRunner.Lint()](TSQLLintGeneralRulesPlugin.Tests/TestSqlLintRunner.cs) to test rules
    - Always include both violation-detection cases and allowed cases
    - Example: `TestSqlLintRunner.Lint("SELECT ...", cb => new MyRule(cb))`
 
@@ -115,7 +115,7 @@ When implementing rules, use these key APIs:
   - `ExecuteStatement` - EXEC statements
   - etc.
 
-Example pattern from [RequireAsForColumnAliasRule.cs:43-82](tsqllint-plugin/Rules/RequireAsForColumnAliasRule.cs#L43-L82):
+Example pattern from [RequireAsForColumnAliasRule.cs:43-82](TSQLLintGeneralRulesPlugin/Rules/RequireAsForColumnAliasRule.cs#L43-L82):
 ```csharp
 public override void Visit(SelectScalarExpression node)
 {
@@ -141,7 +141,7 @@ public override void Visit(SelectScalarExpression node)
 
 ## Testing
 
-**Test helper:** [TestSqlLintRunner.cs](tsqllint-plugin.Tests/TestSqlLintRunner.cs)
+**Test helper:** [TestSqlLintRunner.cs](TSQLLintGeneralRulesPlugin.Tests/TestSqlLintRunner.cs)
 - Parses SQL using `TSql150Parser`
 - Applies rules via AST visitor pattern
 - Returns list of `RuleViolation` records with rule name, text, line, and column

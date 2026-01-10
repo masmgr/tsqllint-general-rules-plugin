@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\tsqllint-plugin\tsqllint-plugin.csproj" />
+    <ProjectReference Include="..\TSQLLintGeneralRulesPlugin\TSQLLintGeneralRulesPlugin.csproj" />
   </ItemGroup>
 
 </Project>

@@ -19,10 +19,10 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: dotnet restore tsqllint-plugin.sln
+      run: dotnet restore TSQLLintGeneralRulesPlugin.sln
 
     - name: Build
-      run: dotnet build tsqllint-plugin.sln -c Release --no-restore
+      run: dotnet build TSQLLintGeneralRulesPlugin.sln -c Release --no-restore
 
     - name: Run tests
-      run: dotnet test tsqllint-plugin.sln -c Release --no-build --verbosity normal
+      run: dotnet test TSQLLintGeneralRulesPlugin.sln -c Release --no-build --verbosity normal
