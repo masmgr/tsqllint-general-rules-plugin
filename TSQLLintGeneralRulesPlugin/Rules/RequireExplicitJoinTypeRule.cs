@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.SqlServer.TransactSql.ScriptDom;
 using TSQLLint.Common;
 
-namespace TSQLLint.Plugin
+namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
     /// Requires the explicit specification of JOIN types (INNER, LEFT OUTER, RIGHT OUTER, or FULL OUTER).

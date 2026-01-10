@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.SqlServer.TransactSql.ScriptDom;
 using TSQLLint.Common;
 
-namespace TSQLLint.Plugin
+namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
     /// Detects styled <c>CONVERT</c> calls when converting datetime to string and recommends using <c>FORMAT</c> or converting to date type.

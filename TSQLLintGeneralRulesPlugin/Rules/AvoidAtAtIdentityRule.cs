@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.SqlServer.TransactSql.ScriptDom;
 using TSQLLint.Common;
 
-namespace TSQLLint.Plugin
+namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
     /// Detects usage of <c>@@IDENTITY</c> and recommends using <c>SCOPE_IDENTITY()</c> or <c>OUTPUT</c> instead.

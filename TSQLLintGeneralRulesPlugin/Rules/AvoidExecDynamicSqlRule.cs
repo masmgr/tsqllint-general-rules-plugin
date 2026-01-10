@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.SqlServer.TransactSql.ScriptDom;
 using TSQLLint.Common;
 
-namespace TSQLLint.Plugin
+namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
     /// Detects execution of dynamic SQL using <c>EXEC</c> and recommends using <c>sp_executesql</c> with parameters.

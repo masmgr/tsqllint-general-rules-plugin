@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.SqlServer.TransactSql.ScriptDom;
 using TSQLLint.Common;
 
-namespace TSQLLint.Plugin
+namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
     /// UPDATE/DELETE ステートメントで TOP を避けるべきことを検出するルール。

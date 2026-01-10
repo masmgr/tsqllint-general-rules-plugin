@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.SqlServer.TransactSql.ScriptDom;
 using TSQLLint.Common;
 
-namespace TSQLLint.Plugin
+namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
     /// Prohibits the use of <c>ORDER BY</c> in subqueries unless <c>TOP</c>, <c>OFFSET</c>, or <c>FOR XML</c> is present.

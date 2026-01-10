@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using TSQLLint.Common;
 
-namespace TSQLLint.Plugin
+namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
     /// A plugin that registers general-purpose rules with TSQLLint.

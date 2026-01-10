@@ -1,6 +1,6 @@
 using TSQLLint.Common;
 
-namespace TSQLLint.Plugin
+namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
     /// Represents an <see cref="IRuleViolation"/> implementation for alias specification rule violations involving the <c>AS</c> keyword.

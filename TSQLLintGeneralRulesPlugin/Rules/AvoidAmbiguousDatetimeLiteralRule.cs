@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using Microsoft.SqlServer.TransactSql.ScriptDom;
 using TSQLLint.Common;
 
-namespace TSQLLint.Plugin
+namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
     /// スラッシュで区切られた曖昧な日付リテラルを避けるべきことを検出するルール。

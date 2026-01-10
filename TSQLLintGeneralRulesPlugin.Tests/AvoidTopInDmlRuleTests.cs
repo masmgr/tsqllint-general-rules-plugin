@@ -1,7 +1,7 @@
-using TSQLLint.Plugin;
+using TSQLLintGeneralRulesPlugin;
 using Xunit;
 
-namespace TSQLLint.Plugin.Tests;
+namespace TSQLLintGeneralRulesPlugin.Tests;
 
 /// <summary>
 /// Unit tests for <see cref="AvoidTopInDmlRule"/>.

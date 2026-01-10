@@ -5,7 +5,7 @@ using Microsoft.SqlServer.TransactSql.ScriptDom;
 using TSQLLint.Common;
 using Xunit;
 
-namespace TSQLLint.Plugin.Tests;
+namespace TSQLLintGeneralRulesPlugin.Tests;
 
 /// <summary>
 /// A simple runner for rule unit tests.
