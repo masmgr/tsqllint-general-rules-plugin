@@ -54,7 +54,7 @@ When TSQLLint loads this plugin, it discovers and applies all registered rules d
        "other-rule-id": "warning"
      },
      "plugins": {
-       "tsqllint-general-rules": "path/to/TSQLLintGeneralRulesPlugin/bin/Release/net8.0/TSQLLintGeneralRulesPlugin.dll"
+       "tsqllint-general-rules": "path/to/TSQLLintGeneralRulesPlugin.dll"
      }
    }
    ```
