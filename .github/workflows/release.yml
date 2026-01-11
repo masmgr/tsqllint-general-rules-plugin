@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore TSQLLintGeneralRulesPlugin.sln
+
+    - name: Build
+      run: dotnet build TSQLLintGeneralRulesPlugin.sln -c Release --no-restore
+
+    - name: Run tests
+      run: dotnet test TSQLLintGeneralRulesPlugin.sln -c Release --no-build --verbosity normal
+
+    - name: Prepare release artifact
+      run: |
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        cp TSQLLintGeneralRulesPlugin/bin/Release/net8.0/TSQLLintGeneralRulesPlugin.dll \
+           TSQLLintGeneralRulesPlugin-${TAG_NAME}.dll
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        generate_release_notes: true
+        files: TSQLLintGeneralRulesPlugin-*.dll
