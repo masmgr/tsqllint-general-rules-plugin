@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="TSQLLint.Common" Version="3.3.3" />
+    <PackageReference Include="TSQLLint.Common" Version="3.3.0" />
   </ItemGroup>
 
 </Project>

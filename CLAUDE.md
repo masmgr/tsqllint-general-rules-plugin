@@ -170,6 +170,6 @@ public void ShouldDetectViolation()
 
 ## External Dependencies
 
-- **TSQLLint.Common** v3.3.3 - Plugin interface and base rule infrastructure
+- **TSQLLint.Common** v3.3.0 - Plugin interface and base rule infrastructure
 - **xUnit** - Test framework
 - **Microsoft.SqlServer.TransactSql.ScriptDom** - Implicit dependency via TSQLLint.Common; provides T-SQL AST parsing

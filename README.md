@@ -7,7 +7,7 @@ This plugin implements `IPlugin` from `TSQLLint.Common` via `SqlPlugin` and regi
 ## Requirements
 
 - .NET SDK 8.0+
-- TSQLLint (compatible with `TSQLLint.Common` v3.3.3+)
+- TSQLLint (compatible with `TSQLLint.Common` v3.3.0+)
 
 ## Quick Start
 
