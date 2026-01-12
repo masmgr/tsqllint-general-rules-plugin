@@ -90,6 +90,19 @@ public sealed class OrderByInSubqueryRuleTests
     }
 
     /// <summary>
+    /// Verifies that ORDER BY with FOR JSON in subqueries is allowed.
+    /// </summary>
+    [Fact]
+    public void Allows_WhenOrderByWithForJsonInSubquery()
+    {
+        var violations = TestSqlLintRunner.Lint(
+            "SELECT (SELECT id FROM dbo.TableName ORDER BY id FOR JSON PATH) AS JsonResult;",
+            callback => new OrderByInSubqueryRule(callback));
+
+        Assert.Empty(violations);
+    }
+
+    /// <summary>
     /// Verifies that ORDER BY with TOP (1) in subqueries is allowed.
     /// </summary>
     [Fact]
@@ -114,4 +127,5 @@ public sealed class OrderByInSubqueryRuleTests
 
         Assert.Empty(violations);
     }
+
 }

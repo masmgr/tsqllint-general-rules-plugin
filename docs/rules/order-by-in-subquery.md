@@ -2,22 +2,23 @@
 
 ## Summary
 
-Disallows `ORDER BY` usage in subqueries. SQL Server raises a runtime error (error 46047) when this occurs, so this linter detects it early.
+Disallows `ORDER BY` usage in subqueries. SQL Server returns an error (Msg 1033) when this occurs, so this linter detects it early.
 
 ## Details
 
 - Rule ID: `order-by-in-subquery`
 - Severity: `Error`
-- Message: `ORDER BY in subquery without TOP, OFFSET, or FOR XML is not allowed.`
+- Message: `ORDER BY in subquery without TOP, OFFSET, FOR XML, or FOR JSON is not allowed.`
 
 Traverses `QuerySpecification` and reports a violation when all of the following conditions are met:
 
-- Inside a subquery (nesting level 2 or higher)
+- Inside a non-top-level SELECT (e.g., derived table, CTE, or scalar subquery)
 - `ORDER BY` clause exists (`OrderByClause` is present)
 - None of the following are true:
   - `TOP` is specified (`TopRowFilter` exists)
   - `OFFSET` is specified (`OffsetClause` exists)
   - `FOR XML` clause is present
+  - `FOR JSON` clause is present
 
 ## Rationale
 
@@ -26,14 +27,17 @@ In SQL Server, when using `ORDER BY` in a subquery, one of the following is requ
 - `TOP` - to limit the result set
 - `OFFSET/FETCH` - to implement pagination
 - `FOR XML` - to output in XML format
+- `FOR JSON` - to output in JSON format
 
-Without these, SQL Server raises a runtime error. This rule detects such errors early during the linting phase.
+Without these, SQL Server returns an error (Msg 1033). This rule detects such errors early during the linting phase.
+
+Even when allowed, `ORDER BY` in subqueries only determines which rows are selected for `TOP`/`OFFSET`/`FOR XML`/`FOR JSON` and does not guarantee the final output order; use an outer `ORDER BY` for that.
 
 ## Examples
 
 ### Invalid
 
-This query raises a runtime error in SQL Server:
+This query returns an error in SQL Server:
 
 ```sql
 SELECT *
@@ -44,7 +48,7 @@ FROM (
 ) AS sub;
 ```
 
-Result: Error 46047 - "The ORDER BY clause is invalid in views, inline functions, derived tables, subqueries, and common table expressions, unless TOP, OFFSET or FOR XML is also specified."
+Result: Msg 1033 - "The ORDER BY clause is invalid in views, inline functions, derived tables, subqueries, and common table expressions, unless TOP, OFFSET or FOR XML is also specified."
 
 ### Valid (TOP)
 
@@ -79,6 +83,17 @@ SELECT (
   ORDER BY id
   FOR XML PATH('')
 ) AS XmlResult;
+```
+
+### Valid (FOR JSON)
+
+```sql
+SELECT (
+  SELECT id
+  FROM dbo.TableName
+  ORDER BY id
+  FOR JSON PATH
+) AS JsonResult;
 ```
 
 ### Valid (no ORDER BY in subquery)
