@@ -47,4 +47,12 @@ FROM (SELECT 1 AS Value) AS t;
 
 ## Notes
 
+- This rule enforces a style choice; `AS` is optional in the T-SQL syntax for table aliases.
+- Explicit alias keywords are recommended in some style guides for readability and consistency.
+- Only `NamedTableReference` and `QueryDerivedTable` are checked; other FROM items (table-valued functions, OPENJSON, OPENROWSET, etc.) are out of scope.
 - This rule uses the token stream (`ScriptTokenStream`) to determine the presence of `AS`.
+
+## References
+
+- https://learn.microsoft.com/en-us/sql/t-sql/queries/from-transact-sql?view=sql-server-ver17
+- https://lowlydba.github.io/tsqlstyle.guide/
