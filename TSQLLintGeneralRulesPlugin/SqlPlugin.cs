@@ -42,7 +42,9 @@ namespace TSQLLintGeneralRulesPlugin
             ["avoid-null-comparison"] = new AvoidNullComparisonRule(null!),
             ["avoid-ambiguous-datetime-literal"] = new AvoidAmbiguousDatetimeLiteralRule(null!),
             ["require-try-catch-for-transaction"] = new RequireTryCatchForTransactionRule(null!),
-            ["require-xact-abort-on"] = new RequireXactAbortOnRule(null!)
+            ["require-xact-abort-on"] = new RequireXactAbortOnRule(null!),
+            ["require-primary-key-or-unique-constraint"] = new RequirePrimaryKeyOrUniqueConstraintRule(null!),
+            ["avoid-heap-table"] = new AvoidHeapTableRule(null!)
         };
     }
 }

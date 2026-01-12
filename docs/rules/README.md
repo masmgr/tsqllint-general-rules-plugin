@@ -15,6 +15,11 @@ This is a list of rules provided by this plugin.
 - [`require-column-list-for-insert-values`](require-column-list-for-insert-values.md): Requires column list for `INSERT INTO ... VALUES`.
 - [`order-by-in-subquery`](order-by-in-subquery.md): Disallows `ORDER BY` usage in subqueries.
 
+## Schema Design
+
+- [`require-primary-key-or-unique-constraint`](require-primary-key-or-unique-constraint.md): Requires a PRIMARY KEY or UNIQUE constraint for user tables.
+- [`avoid-heap-table`](avoid-heap-table.md): Warns when tables are created without a clustered index (heap tables).
+
 ## Performance & Correctness
 
 - [`top-without-order-by`](top-without-order-by.md): Requires `ORDER BY` when using `TOP` in SELECT.
