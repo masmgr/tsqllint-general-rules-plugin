@@ -6,9 +6,9 @@ using TSQLLint.Common;
 namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
-    /// Detects styled <c>CONVERT</c> calls when converting datetime to string and recommends using <c>FORMAT</c> or converting to date type.
+    /// Detects styled <c>CONVERT</c> calls when converting datetime to string and recommends avoiding magic style numbers.
     /// </summary>
-    public sealed class PreferFormatOrDateForDatetimeConversionRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class AvoidMagicConvertStyleForDatetimeRule : TSqlFragmentVisitor, ISqlLintRule
     {
         private readonly Action<string, string, int, int> _errorCallback;
 
@@ -16,7 +16,7 @@ namespace TSQLLintGeneralRulesPlugin
         /// Initializes the rule.
         /// </summary>
         /// <param name="errorCallback">Callback invoked when a violation is detected.</param>
-        public PreferFormatOrDateForDatetimeConversionRule(Action<string, string, int, int> errorCallback)
+        public AvoidMagicConvertStyleForDatetimeRule(Action<string, string, int, int> errorCallback)
         {
             _errorCallback = errorCallback;
         }
@@ -24,12 +24,12 @@ namespace TSQLLintGeneralRulesPlugin
         /// <summary>
         /// Gets the rule ID.
         /// </summary>
-        public string RULE_NAME => "prefer-format-or-date-for-datetime-conversion";
+        public string RULE_NAME => "avoid-magic-convert-style-for-datetime";
 
         /// <summary>
         /// Gets the violation message.
         /// </summary>
-        public string RULE_TEXT => "Avoid CONVERT with style numbers for datetime formatting. Use FORMAT() for readable formatting or CONVERT to date type for date-only values.";
+        public string RULE_TEXT => "Avoid CONVERT with style numbers for datetime formatting. Prefer ISO-style conversions or date types; reserve FORMAT() for small UI output with explicit culture.";
 
         /// <summary>
         /// Gets the violation severity.

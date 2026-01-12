@@ -40,4 +40,4 @@ This is a list of rules provided by this plugin.
 
 ## Functions & Built-in Utilities
 
-- [`prefer-format-or-date-for-datetime-conversion`](prefer-format-or-date-for-datetime-conversion.md): Detects `CONVERT` with style numbers for datetime conversion and recommends `FORMAT` or conversion to date type.
+- [`avoid-magic-convert-style-for-datetime`](avoid-magic-convert-style-for-datetime.md): Detects `CONVERT` with style numbers for datetime conversion and warns on magic numbers in favor of clearer alternatives.

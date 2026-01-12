@@ -34,7 +34,7 @@ namespace TSQLLintGeneralRulesPlugin
             ["avoid-atat-identity"] = new AvoidAtAtIdentityRule(null!),
             ["avoid-exec-dynamic-sql"] = new AvoidExecDynamicSqlRule(null!),
             ["order-by-in-subquery"] = new OrderByInSubqueryRule(null!),
-            ["prefer-format-or-date-for-datetime-conversion"] = new PreferFormatOrDateForDatetimeConversionRule(null!),
+            ["avoid-magic-convert-style-for-datetime"] = new AvoidMagicConvertStyleForDatetimeRule(null!),
             ["avoid-merge"] = new AvoidMergeRule(null!),
             ["avoid-top-in-dml"] = new AvoidTopInDmlRule(null!),
             ["require-column-list-for-insert-values"] = new RequireColumnListForInsertValuesRule(null!),
