@@ -42,7 +42,14 @@ WHERE NOT EXISTS (SELECT 1 FROM target WHERE target.id = source.id);
 
 ## Notes
 
-- MERGE statements have known issues with concurrent operations and may produce unexpected results
-- The complexity of MERGE logic makes it harder to debug and maintain
+- MERGE statements have documented behaviors that differ from separate DML (for example, trigger firing order and @@ROWCOUNT semantics)
+- Community guidance generally treats MERGE as risky without extra locking, such as WITH (HOLDLOCK)
+- Known edge cases and bugs have been documented in real systems (for example, indexed view interactions)
 - Using separate DML statements provides better control and clarity
-- Consider using explicit transaction control when replacing MERGE with separate statements
+- When replacing MERGE with separate statements, use explicit transactions and an appropriate locking strategy to avoid race conditions
+
+## References
+
+- https://learn.microsoft.com/en-us/sql/t-sql/statements/merge-transact-sql?view=sql-server-ver17
+- https://sqlblog.org/merge
+- https://michaeljswart.com/2021/08/what-to-avoid-if-you-want-to-use-merge/
