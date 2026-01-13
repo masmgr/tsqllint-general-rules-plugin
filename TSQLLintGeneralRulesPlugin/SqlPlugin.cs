@@ -28,7 +28,9 @@ namespace TSQLLintGeneralRulesPlugin
             ["require-as-for-table-alias"] = new RequireAsForTableAliasRule(null!),
             ["require-explicit-join-type"] = new RequireExplicitJoinTypeRule(null!),
             ["qualified-select-columns"] = new RequireQualifiedSelectColumnsRule(null!),
+            ["require-begin-end-for-if-with-controlflow-exception"] = new RequireBeginEndForIfWithControlFlowExceptionRule(null!),
             ["prefer-coalesce-over-nested-isnull"] = new PreferCoalesceOverNestedIsNullRule(null!),
+            ["require-begin-end-for-while"] = new RequireBeginEndForWhileRule(null!),
             ["require-column-list-for-insert-select"] = new RequireColumnListForInsertSelectRule(null!),
             ["top-without-order-by"] = new TopWithoutOrderByRule(null!),
             ["avoid-atat-identity"] = new AvoidAtAtIdentityRule(null!),
@@ -41,9 +43,11 @@ namespace TSQLLintGeneralRulesPlugin
             ["avoid-nolock"] = new AvoidNolockRule(null!),
             ["avoid-null-comparison"] = new AvoidNullComparisonRule(null!),
             ["avoid-ambiguous-datetime-literal"] = new AvoidAmbiguousDatetimeLiteralRule(null!),
+            ["prefer-concat-over-plus-when-nullable-or-convert"] = new PreferConcatOverPlusWhenNullableOrConvertRule(null!),
             ["require-try-catch-for-transaction"] = new RequireTryCatchForTransactionRule(null!),
             ["require-xact-abort-on"] = new RequireXactAbortOnRule(null!),
             ["require-primary-key-or-unique-constraint"] = new RequirePrimaryKeyOrUniqueConstraintRule(null!),
+            ["require-ms-description-for-table-definition-file"] = new RequireMsDescriptionForTableDefinitionFileRule(null!),
             ["avoid-heap-table"] = new AvoidHeapTableRule(null!)
         };
     }

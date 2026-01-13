@@ -7,6 +7,11 @@ This is a list of rules provided by this plugin.
 - [`require-as-for-column-alias`](require-as-for-column-alias.md): Requires `AS` for column aliases.
 - [`require-as-for-table-alias`](require-as-for-table-alias.md): Requires `AS` for table/derived table aliases.
 
+## Control Flow Safety
+
+- [`require-begin-end-for-while`](require-begin-end-for-while.md): Enforces `BEGIN/END` for `WHILE` loop bodies.
+- [`require-begin-end-for-if-with-controlflow-exception`](require-begin-end-for-if-with-controlflow-exception.md): Enforces blocks for `IF`/`ELSE` clauses unless they contain a single control-flow statement.
+
 ## Query Structure & Clarity
 
 - [`qualified-select-columns`](qualified-select-columns.md): Disallows unqualified column references in SELECT lists when multiple tables are referenced.
@@ -19,6 +24,7 @@ This is a list of rules provided by this plugin.
 
 - [`require-primary-key-or-unique-constraint`](require-primary-key-or-unique-constraint.md): Requires a PRIMARY KEY or UNIQUE constraint for user tables.
 - [`avoid-heap-table`](avoid-heap-table.md): Warns when tables are created without a clustered index (heap tables).
+- [`require-ms-description-for-table-definition-file`](require-ms-description-for-table-definition-file.md): Encourages tables to declare an `MS_Description` extended property alongside their definition.
 
 ## Performance & Correctness
 
@@ -46,3 +52,4 @@ This is a list of rules provided by this plugin.
 ## Functions & Built-in Utilities
 
 - [`avoid-magic-convert-style-for-datetime`](avoid-magic-convert-style-for-datetime.md): Detects `CONVERT` with style numbers for datetime conversion and warns on magic numbers in favor of clearer alternatives.
+- [`prefer-concat-over-plus-when-nullable-or-convert`](prefer-concat-over-plus-when-nullable-or-convert.md): Encourages `CONCAT` when `ISNULL`/`CONVERT`/`CAST` are mixed into `+` string building.
