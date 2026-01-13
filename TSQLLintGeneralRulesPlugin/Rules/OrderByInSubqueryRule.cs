@@ -6,12 +6,12 @@ using TSQLLint.Common;
 namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
-    /// Prohibits the use of <c>ORDER BY</c> in subqueries unless <c>TOP</c>, <c>OFFSET</c>, or <c>FOR XML</c> is present.
+    /// Prohibits the use of <c>ORDER BY</c> in subqueries unless <c>TOP</c>, <c>OFFSET</c>, <c>FOR XML</c>, or <c>FOR JSON</c> is present.
     /// </summary>
     public sealed class OrderByInSubqueryRule : TSqlFragmentVisitor, ISqlLintRule
     {
         private readonly Action<string, string, int, int> _errorCallback;
-        private int _queryDepth = 0;
+        private int _subqueryContextDepth = 0;
 
         /// <summary>
         /// Initializes the rule.
@@ -30,7 +30,7 @@ namespace TSQLLintGeneralRulesPlugin
         /// <summary>
         /// Gets the violation message.
         /// </summary>
-        public string RULE_TEXT => "ORDER BY in subquery without TOP, OFFSET, or FOR XML is not allowed.";
+        public string RULE_TEXT => "ORDER BY in subquery without TOP, OFFSET, FOR XML, or FOR JSON is not allowed.";
 
         /// <summary>
         /// Gets the violation severity.
@@ -49,15 +49,11 @@ namespace TSQLLintGeneralRulesPlugin
                 return;
             }
 
-            _queryDepth++;
-
-            // ORDER BY exists in a subquery (depth >= 2)
-            if (_queryDepth >= 2 && node.OrderByClause != null)
+            if (_subqueryContextDepth > 0 && node.OrderByClause != null)
             {
                 // Exclude if TOP is present
                 if (node.TopRowFilter != null)
                 {
-                    _queryDepth--;
                     base.Visit(node);
                     return;
                 }
@@ -65,15 +61,13 @@ namespace TSQLLintGeneralRulesPlugin
                 // Exclude if OFFSET is present
                 if (node.OffsetClause != null)
                 {
-                    _queryDepth--;
                     base.Visit(node);
                     return;
                 }
 
-                // Exclude if FOR XML is present
-                if (HasForXmlClause(node))
+                // Exclude if FOR XML or FOR JSON is present
+                if (HasForXmlOrJsonClause(node))
                 {
-                    _queryDepth--;
                     base.Visit(node);
                     return;
                 }
@@ -87,14 +81,13 @@ namespace TSQLLintGeneralRulesPlugin
             }
 
             base.Visit(node);
-            _queryDepth--;
         }
 
         /// <summary>
-        /// Traverses SELECT statements and tracks nesting levels.
+        /// Traverses scalar subqueries and marks their SELECTs as subqueries.
         /// </summary>
-        /// <param name="node">The SELECT statement node to visit.</param>
-        public override void Visit(SelectStatement node)
+        /// <param name="node">The scalar subquery node to visit.</param>
+        public override void Visit(ScalarSubquery node)
         {
             if (node == null)
             {
@@ -102,20 +95,54 @@ namespace TSQLLintGeneralRulesPlugin
                 return;
             }
 
-            _queryDepth++;
+            _subqueryContextDepth++;
             base.Visit(node);
-            _queryDepth--;
+            _subqueryContextDepth--;
         }
 
         /// <summary>
-        /// Determines whether the node has a FOR XML clause.
+        /// Traverses derived tables and marks their SELECTs as subqueries.
+        /// </summary>
+        /// <param name="node">The derived table node to visit.</param>
+        public override void Visit(QueryDerivedTable node)
+        {
+            if (node == null)
+            {
+                base.Visit(node);
+                return;
+            }
+
+            _subqueryContextDepth++;
+            base.Visit(node);
+            _subqueryContextDepth--;
+        }
+
+        /// <summary>
+        /// Traverses CTEs and marks their SELECTs as subqueries.
+        /// </summary>
+        /// <param name="node">The CTE node to visit.</param>
+        public override void Visit(CommonTableExpression node)
+        {
+            if (node == null)
+            {
+                base.Visit(node);
+                return;
+            }
+
+            _subqueryContextDepth++;
+            base.Visit(node);
+            _subqueryContextDepth--;
+        }
+
+        /// <summary>
+        /// Determines whether the node has a FOR XML or FOR JSON clause.
         /// </summary>
         /// <param name="node">The node to check.</param>
-        /// <returns>true if the node has a FOR XML clause, false otherwise.</returns>
-        private static bool HasForXmlClause(QuerySpecification node)
+        /// <returns>true if the node has a FOR XML or FOR JSON clause, false otherwise.</returns>
+        private static bool HasForXmlOrJsonClause(QuerySpecification node)
         {
-            // To check if a QuerySpecification has FOR XML through its parent SelectStatement,
-            // examine the tokens to look for the FOR XML keywords.
+            // To check if a QuerySpecification has FOR XML or FOR JSON through its parent SelectStatement,
+            // examine the tokens to look for the FOR XML/FOR JSON keywords.
             if (node?.ScriptTokenStream == null || node.ScriptTokenStream.Count == 0)
             {
                 return false;
@@ -126,10 +153,14 @@ namespace TSQLLintGeneralRulesPlugin
             {
                 // Check if FOR keyword is followed by XML keyword
                 if (tokens[i].TokenType == TSqlTokenType.For &&
-                    i + 1 < tokens.Count &&
-                    tokens[i + 1].Text?.Equals("XML", StringComparison.OrdinalIgnoreCase) == true)
+                    i + 1 < tokens.Count)
                 {
-                    return true;
+                    var nextText = tokens[i + 1].Text;
+                    if (nextText?.Equals("XML", StringComparison.OrdinalIgnoreCase) == true ||
+                        nextText?.Equals("JSON", StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        return true;
+                    }
                 }
             }
 

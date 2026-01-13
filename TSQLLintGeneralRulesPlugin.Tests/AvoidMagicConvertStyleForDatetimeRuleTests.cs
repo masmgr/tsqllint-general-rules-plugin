@@ -4,9 +4,9 @@ using Xunit;
 namespace TSQLLintGeneralRulesPlugin.Tests;
 
 /// <summary>
-/// Unit tests for <see cref="PreferFormatOrDateForDatetimeConversionRule"/>.
+/// Unit tests for <see cref="AvoidMagicConvertStyleForDatetimeRule"/>.
 /// </summary>
-public sealed class PreferFormatOrDateForDatetimeConversionRuleTests
+public sealed class AvoidMagicConvertStyleForDatetimeRuleTests
 {
     /// <summary>
     /// Verifies that CONVERT to varchar with style is detected as a violation.
@@ -16,10 +16,10 @@ public sealed class PreferFormatOrDateForDatetimeConversionRuleTests
     {
         var violations = TestSqlLintRunner.Lint(
             "SELECT CONVERT(varchar(8), GETDATE(), 112);",
-            callback => new PreferFormatOrDateForDatetimeConversionRule(callback));
+            callback => new AvoidMagicConvertStyleForDatetimeRule(callback));
 
         Assert.Single(violations);
-        Assert.Equal("prefer-format-or-date-for-datetime-conversion", violations[0].RuleName);
+        Assert.Equal("avoid-magic-convert-style-for-datetime", violations[0].RuleName);
     }
 
     /// <summary>
@@ -30,10 +30,10 @@ public sealed class PreferFormatOrDateForDatetimeConversionRuleTests
     {
         var violations = TestSqlLintRunner.Lint(
             "SELECT CONVERT(nvarchar(19), @datetime_var, 120);",
-            callback => new PreferFormatOrDateForDatetimeConversionRule(callback));
+            callback => new AvoidMagicConvertStyleForDatetimeRule(callback));
 
         Assert.Single(violations);
-        Assert.Equal("prefer-format-or-date-for-datetime-conversion", violations[0].RuleName);
+        Assert.Equal("avoid-magic-convert-style-for-datetime", violations[0].RuleName);
     }
 
     /// <summary>
@@ -44,10 +44,10 @@ public sealed class PreferFormatOrDateForDatetimeConversionRuleTests
     {
         var violations = TestSqlLintRunner.Lint(
             "SELECT CONVERT(char(10), CURRENT_TIMESTAMP, 101);",
-            callback => new PreferFormatOrDateForDatetimeConversionRule(callback));
+            callback => new AvoidMagicConvertStyleForDatetimeRule(callback));
 
         Assert.Single(violations);
-        Assert.Equal("prefer-format-or-date-for-datetime-conversion", violations[0].RuleName);
+        Assert.Equal("avoid-magic-convert-style-for-datetime", violations[0].RuleName);
     }
 
     /// <summary>
@@ -58,10 +58,10 @@ public sealed class PreferFormatOrDateForDatetimeConversionRuleTests
     {
         var violations = TestSqlLintRunner.Lint(
             "SELECT CONVERT(nchar(19), date_column, 120);",
-            callback => new PreferFormatOrDateForDatetimeConversionRule(callback));
+            callback => new AvoidMagicConvertStyleForDatetimeRule(callback));
 
         Assert.Single(violations);
-        Assert.Equal("prefer-format-or-date-for-datetime-conversion", violations[0].RuleName);
+        Assert.Equal("avoid-magic-convert-style-for-datetime", violations[0].RuleName);
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ public sealed class PreferFormatOrDateForDatetimeConversionRuleTests
     {
         var violations = TestSqlLintRunner.Lint(
             "SELECT CONVERT(date, GETDATE());",
-            callback => new PreferFormatOrDateForDatetimeConversionRule(callback));
+            callback => new AvoidMagicConvertStyleForDatetimeRule(callback));
 
         Assert.Empty(violations);
     }
@@ -85,7 +85,7 @@ public sealed class PreferFormatOrDateForDatetimeConversionRuleTests
     {
         var violations = TestSqlLintRunner.Lint(
             "SELECT CONVERT(nvarchar(100), some_column);",
-            callback => new PreferFormatOrDateForDatetimeConversionRule(callback));
+            callback => new AvoidMagicConvertStyleForDatetimeRule(callback));
 
         Assert.Empty(violations);
     }
@@ -98,7 +98,7 @@ public sealed class PreferFormatOrDateForDatetimeConversionRuleTests
     {
         var violations = TestSqlLintRunner.Lint(
             "SELECT CONVERT(varchar(10), 123);",
-            callback => new PreferFormatOrDateForDatetimeConversionRule(callback));
+            callback => new AvoidMagicConvertStyleForDatetimeRule(callback));
 
         Assert.Empty(violations);
     }
@@ -111,7 +111,7 @@ public sealed class PreferFormatOrDateForDatetimeConversionRuleTests
     {
         var violations = TestSqlLintRunner.Lint(
             "SELECT FORMAT(GETDATE(), 'yyyy-MM-dd');",
-            callback => new PreferFormatOrDateForDatetimeConversionRule(callback));
+            callback => new AvoidMagicConvertStyleForDatetimeRule(callback));
 
         Assert.Empty(violations);
     }
