@@ -6,40 +6,32 @@ using TSQLLint.Common;
 namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
-    /// NULL との比較 (= NULL, <> NULL) を避けるべきことを検出するルール。
-    /// </summary>
-    public sealed class AvoidNullComparisonRule : TSqlFragmentVisitor, ISqlLintRule
+    /// NULL 縺ｨ縺ｮ豈碑ｼ・(= NULL, <> NULL) 繧帝∩縺代ｋ縺ｹ縺阪％縺ｨ繧呈､懷・縺吶ｋ繝ｫ繝ｼ繝ｫ縲・    /// </summary>
+    public sealed class AvoidNullComparisonRule : SqlLintRuleBase
     {
-        private readonly Action<string, string, int, int> _errorCallback;
 
         /// <summary>
-        /// ルールを初期化します。
-        /// </summary>
-        /// <param name="errorCallback">違反が検出されたときに呼び出されるコールバック。</param>
-        public AvoidNullComparisonRule(Action<string, string, int, int> errorCallback)
+        /// 繝ｫ繝ｼ繝ｫ繧貞・譛溷喧縺励∪縺吶・        /// </summary>
+        /// <param name="errorCallback">驕募渚縺梧､懷・縺輔ｌ縺溘→縺阪↓蜻ｼ縺ｳ蜃ｺ縺輔ｌ繧九さ繝ｼ繝ｫ繝舌ャ繧ｯ縲・/param>
+        public AvoidNullComparisonRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
 
         /// <summary>
-        /// ルールIDを取得します。
-        /// </summary>
-        public string RULE_NAME => "avoid-null-comparison";
+        /// 繝ｫ繝ｼ繝ｫID繧貞叙蠕励＠縺ｾ縺吶・        /// </summary>
+        public override string RULE_NAME => "avoid-null-comparison";
 
         /// <summary>
-        /// 違反メッセージを取得します。
-        /// </summary>
-        public string RULE_TEXT => "Comparing with NULL using = or <> always evaluates to UNKNOWN. Use IS NULL or IS NOT NULL instead.";
+        /// 驕募渚繝｡繝・そ繝ｼ繧ｸ繧貞叙蠕励＠縺ｾ縺吶・        /// </summary>
+        public override string RULE_TEXT => "Comparing with NULL using = or <> always evaluates to UNKNOWN. Use IS NULL or IS NOT NULL instead.";
 
         /// <summary>
-        /// 違反の重大度を取得します。
-        /// </summary>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+        /// 驕募渚縺ｮ驥榊､ｧ蠎ｦ繧貞叙蠕励＠縺ｾ縺吶・        /// </summary>
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
         /// <summary>
-        /// ブール比較式を訪問します。
-        /// </summary>
-        /// <param name="node">訪問するノード。</param>
+        /// 繝悶・繝ｫ豈碑ｼ・ｼ上ｒ險ｪ蝠上＠縺ｾ縺吶・        /// </summary>
+        /// <param name="node">險ｪ蝠上☆繧九ヮ繝ｼ繝峨・/param>
         public override void Visit(BooleanComparisonExpression node)
         {
             if (node == null)
@@ -54,7 +46,7 @@ namespace TSQLLintGeneralRulesPlugin
             {
                 if (IsNullLiteral(node.FirstExpression) || IsNullLiteral(node.SecondExpression))
                 {
-                    _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.StartLine, node.StartColumn);
+                    ReportViolation(node.StartLine, node.StartColumn);
                 }
             }
 
@@ -62,24 +54,25 @@ namespace TSQLLintGeneralRulesPlugin
         }
 
         /// <summary>
-        /// 式が NULL リテラルかどうかを確認します。
-        /// </summary>
-        /// <param name="expression">確認する式。</param>
-        /// <returns>式が NULL リテラルの場合は true。</returns>
+        /// 蠑上′ NULL 繝ｪ繝・Λ繝ｫ縺九←縺・°繧堤｢ｺ隱阪＠縺ｾ縺吶・        /// </summary>
+        /// <param name="expression">遒ｺ隱阪☆繧句ｼ上・/param>
+        /// <returns>蠑上′ NULL 繝ｪ繝・Λ繝ｫ縺ｮ蝣ｴ蜷医・ true縲・/returns>
         private static bool IsNullLiteral(ScalarExpression? expression)
         {
             return expression is NullLiteral;
         }
 
         /// <summary>
-        /// ルール違反を自動修正します。このルールでは自動修正を提供しません。
-        /// </summary>
-        /// <param name="fileLines">ファイルの行の配列。</param>
-        /// <param name="ruleViolation">ルール違反情報。</param>
-        /// <param name="actions">行編集アクション。</param>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        /// 繝ｫ繝ｼ繝ｫ驕募渚繧定・蜍穂ｿｮ豁｣縺励∪縺吶ゅ％縺ｮ繝ｫ繝ｼ繝ｫ縺ｧ縺ｯ閾ｪ蜍穂ｿｮ豁｣繧呈署萓帙＠縺ｾ縺帙ｓ縲・        /// </summary>
+        /// <param name="fileLines">繝輔ぃ繧､繝ｫ縺ｮ陦後・驟榊・縲・/param>
+        /// <param name="ruleViolation">繝ｫ繝ｼ繝ｫ驕募渚諠・ｱ縲・/param>
+        /// <param name="actions">陦檎ｷｨ髮・い繧ｯ繧ｷ繝ｧ繝ｳ縲・/param>
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
-            // このルールでは自動修正を提供しません。
+            // 縺薙・繝ｫ繝ｼ繝ｫ縺ｧ縺ｯ閾ｪ蜍穂ｿｮ豁｣繧呈署萓帙＠縺ｾ縺帙ｓ縲・        }
         }
     }
+
+
 }
+

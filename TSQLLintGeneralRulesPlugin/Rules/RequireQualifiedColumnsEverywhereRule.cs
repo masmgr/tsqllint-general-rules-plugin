@@ -8,21 +8,19 @@ namespace TSQLLintGeneralRulesPlugin;
 /// <summary>
 /// Requires column references to be qualified in WHERE/JOIN/ORDER BY when multiple tables are referenced.
 /// </summary>
-public sealed class RequireQualifiedColumnsEverywhereRule : TSqlFragmentVisitor, ISqlLintRule
+public sealed class RequireQualifiedColumnsEverywhereRule : SqlLintRuleBase
 {
-    private readonly Action<string, string, int, int> _errorCallback;
 
-    public RequireQualifiedColumnsEverywhereRule(Action<string, string, int, int> errorCallback)
+    public RequireQualifiedColumnsEverywhereRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
     {
-        _errorCallback = errorCallback;
     }
 
-    public string RULE_NAME => "require-qualified-columns-everywhere";
+    public override string RULE_NAME => "require-qualified-columns-everywhere";
 
-    public string RULE_TEXT =>
+    public override string RULE_TEXT =>
         "Unqualified column reference in a multi-table query. Qualify it with a table alias (e.g., t.id) in WHERE/JOIN/ORDER BY to avoid ambiguity.";
 
-    public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+    public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
     public override void Visit(QuerySpecification node)
     {
@@ -65,7 +63,7 @@ public sealed class RequireQualifiedColumnsEverywhereRule : TSqlFragmentVisitor,
         base.Visit(node);
     }
 
-    public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+    public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
     {
         // No automatic fix is provided for this rule.
     }
@@ -77,7 +75,7 @@ public sealed class RequireQualifiedColumnsEverywhereRule : TSqlFragmentVisitor,
 
         foreach (var column in visitor.UnqualifiedColumns)
         {
-            _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, column.StartLine, column.StartColumn);
+            ReportViolation(column.StartLine, column.StartColumn);
         }
     }
 
@@ -248,3 +246,5 @@ public sealed class RequireQualifiedColumnsEverywhereRule : TSqlFragmentVisitor,
         }
     }
 }
+
+

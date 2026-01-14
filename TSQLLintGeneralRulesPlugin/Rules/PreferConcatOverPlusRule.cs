@@ -8,21 +8,19 @@ namespace TSQLLintGeneralRulesPlugin;
 /// <summary>
 /// Encourages CONCAT() over + when string concatenation uses NULL-handling helpers (ISNULL/COALESCE).
 /// </summary>
-public sealed class PreferConcatOverPlusRule : TSqlFragmentVisitor, ISqlLintRule
+public sealed class PreferConcatOverPlusRule : SqlLintRuleBase
 {
-    private readonly Action<string, string, int, int> _errorCallback;
     private readonly List<BinaryExpression> _additionExpressions = new();
 
-    public PreferConcatOverPlusRule(Action<string, string, int, int> errorCallback)
+    public PreferConcatOverPlusRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
     {
-        _errorCallback = errorCallback;
     }
 
-    public string RULE_NAME => "prefer-concat-over-plus";
+    public override string RULE_NAME => "prefer-concat-over-plus";
 
-    public string RULE_TEXT => "Prefer CONCAT() for string concatenation when using ISNULL/COALESCE; it avoids NULL-propagation surprises and improves readability.";
+    public override string RULE_TEXT => "Prefer CONCAT() for string concatenation when using ISNULL/COALESCE; it avoids NULL-propagation surprises and improves readability.";
 
-    public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+    public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
     public override void Visit(BinaryExpression node)
     {
@@ -57,12 +55,12 @@ public sealed class PreferConcatOverPlusRule : TSqlFragmentVisitor, ISqlLintRule
 
             if (ShouldReport(expression))
             {
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, expression.StartLine, expression.StartColumn);
+                ReportViolation(expression.StartLine, expression.StartColumn);
             }
         }
     }
 
-    public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+    public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
     {
         // No automatic fix is provided for this rule.
     }
@@ -202,4 +200,5 @@ public sealed class PreferConcatOverPlusRule : TSqlFragmentVisitor, ISqlLintRule
         }
     }
 }
+
 

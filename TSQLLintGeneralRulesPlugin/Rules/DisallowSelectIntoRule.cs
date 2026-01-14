@@ -8,20 +8,18 @@ namespace TSQLLintGeneralRulesPlugin;
 /// <summary>
 /// Warns on SELECT ... INTO because it implicitly creates a table schema.
 /// </summary>
-public sealed class DisallowSelectIntoRule : TSqlFragmentVisitor, ISqlLintRule
+public sealed class DisallowSelectIntoRule : SqlLintRuleBase
 {
-    private readonly Action<string, string, int, int> _errorCallback;
 
-    public DisallowSelectIntoRule(Action<string, string, int, int> errorCallback)
+    public DisallowSelectIntoRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
     {
-        _errorCallback = errorCallback;
     }
 
-    public string RULE_NAME => "disallow-select-into";
+    public override string RULE_NAME => "disallow-select-into";
 
-    public string RULE_TEXT => "Avoid SELECT ... INTO because it implicitly creates a table schema. Prefer explicit CREATE TABLE + INSERT for repeatable schema control.";
+    public override string RULE_TEXT => "Avoid SELECT ... INTO because it implicitly creates a table schema. Prefer explicit CREATE TABLE + INSERT for repeatable schema control.";
 
-    public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+    public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
     public override void Visit(SelectStatement node)
     {
@@ -33,14 +31,16 @@ public sealed class DisallowSelectIntoRule : TSqlFragmentVisitor, ISqlLintRule
 
         if (node.Into != null)
         {
-            _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.Into.StartLine, node.Into.StartColumn);
+            ReportViolation(node.Into.StartLine, node.Into.StartColumn);
         }
 
         base.Visit(node);
     }
 
-    public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+    public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
     {
         // No automatic fix is provided for this rule.
     }
 }
+
+

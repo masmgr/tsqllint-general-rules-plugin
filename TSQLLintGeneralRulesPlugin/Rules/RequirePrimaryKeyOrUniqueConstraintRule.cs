@@ -9,11 +9,10 @@ namespace TSQLLintGeneralRulesPlugin
     /// <summary>
     /// Requires a PRIMARY KEY or UNIQUE constraint on user tables to ensure row uniqueness.
     /// </summary>
-    public sealed class RequirePrimaryKeyOrUniqueConstraintRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class RequirePrimaryKeyOrUniqueConstraintRule : SqlLintRuleBase
     {
-        private readonly Action<string, string, int, int> _errorCallback;
         private readonly Dictionary<string, List<CreateTableStatement>> _createTables =
-            new(StringComparer.OrdinalIgnoreCase);
+    new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _tablesWithUniqueness =
             new(StringComparer.OrdinalIgnoreCase);
 
@@ -21,25 +20,24 @@ namespace TSQLLintGeneralRulesPlugin
         /// Initializes the rule.
         /// </summary>
         /// <param name="errorCallback">Callback invoked when a violation is detected.</param>
-        public RequirePrimaryKeyOrUniqueConstraintRule(Action<string, string, int, int> errorCallback)
+        public RequirePrimaryKeyOrUniqueConstraintRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
 
         /// <summary>
         /// Gets the rule ID.
         /// </summary>
-        public string RULE_NAME => "require-primary-key-or-unique-constraint";
+        public override string RULE_NAME => "require-primary-key-or-unique-constraint";
 
         /// <summary>
         /// Gets the violation message.
         /// </summary>
-        public string RULE_TEXT => "User tables must define a PRIMARY KEY or UNIQUE constraint to ensure row uniqueness.";
+        public override string RULE_TEXT => "User tables must define a PRIMARY KEY or UNIQUE constraint to ensure row uniqueness.";
 
         /// <summary>
         /// Gets the violation severity.
         /// </summary>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Error;
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Error;
 
         /// <summary>
         /// Visits CREATE TABLE statements to collect table definitions and inline constraints.
@@ -150,7 +148,7 @@ namespace TSQLLintGeneralRulesPlugin
                 foreach (var createTable in entry.Value)
                 {
                     var location = createTable.SchemaObjectName?.BaseIdentifier ?? (TSqlFragment)createTable;
-                    _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, location.StartLine, location.StartColumn);
+                    ReportViolation(location.StartLine, location.StartColumn);
                 }
             }
         }
@@ -161,7 +159,7 @@ namespace TSQLLintGeneralRulesPlugin
         /// <param name="fileLines">Array of lines in the file.</param>
         /// <param name="ruleViolation">The rule violation information.</param>
         /// <param name="actions">Line edit actions.</param>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
             // No automatic fix is provided for this rule.
         }
@@ -224,3 +222,5 @@ namespace TSQLLintGeneralRulesPlugin
         }
     }
 }
+
+

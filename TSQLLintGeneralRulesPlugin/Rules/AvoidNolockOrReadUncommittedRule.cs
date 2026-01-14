@@ -8,20 +8,18 @@ namespace TSQLLintGeneralRulesPlugin;
 /// <summary>
 /// Warns on NOLOCK/READUNCOMMITTED table hints and READ UNCOMMITTED transaction isolation level.
 /// </summary>
-public sealed class AvoidNolockOrReadUncommittedRule : TSqlFragmentVisitor, ISqlLintRule
+public sealed class AvoidNolockOrReadUncommittedRule : SqlLintRuleBase
 {
-    private readonly Action<string, string, int, int> _errorCallback;
 
-    public AvoidNolockOrReadUncommittedRule(Action<string, string, int, int> errorCallback)
+    public AvoidNolockOrReadUncommittedRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
     {
-        _errorCallback = errorCallback;
     }
 
-    public string RULE_NAME => "avoid-nolock-or-read-uncommitted";
+    public override string RULE_NAME => "avoid-nolock-or-read-uncommitted";
 
-    public string RULE_TEXT => "NOLOCK and READ UNCOMMITTED allow dirty reads which can return inconsistent or incorrect data. Prefer appropriate isolation levels or snapshot isolation.";
+    public override string RULE_TEXT => "NOLOCK and READ UNCOMMITTED allow dirty reads which can return inconsistent or incorrect data. Prefer appropriate isolation levels or snapshot isolation.";
 
-    public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+    public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
     public override void Visit(TableHint node)
     {
@@ -34,7 +32,7 @@ public sealed class AvoidNolockOrReadUncommittedRule : TSqlFragmentVisitor, ISql
         if (node.HintKind == TableHintKind.NoLock ||
             node.HintKind == TableHintKind.ReadUncommitted)
         {
-            _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.StartLine, node.StartColumn);
+            ReportViolation(node.StartLine, node.StartColumn);
         }
 
         base.Visit(node);
@@ -50,15 +48,16 @@ public sealed class AvoidNolockOrReadUncommittedRule : TSqlFragmentVisitor, ISql
 
         if (node.Level == IsolationLevel.ReadUncommitted)
         {
-            _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.StartLine, node.StartColumn);
+            ReportViolation(node.StartLine, node.StartColumn);
         }
 
         base.Visit(node);
     }
 
-    public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+    public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
     {
         // No automatic fix is provided for this rule.
     }
 }
+
 

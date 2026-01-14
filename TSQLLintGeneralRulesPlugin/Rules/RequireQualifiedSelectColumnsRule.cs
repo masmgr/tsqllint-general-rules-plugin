@@ -8,34 +8,32 @@ namespace TSQLLintGeneralRulesPlugin
     /// <summary>
     /// Requires column references in the SELECT list to be qualified when multiple tables are referenced.
     /// </summary>
-    public sealed class RequireQualifiedSelectColumnsRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class RequireQualifiedSelectColumnsRule : SqlLintRuleBase
     {
-        private readonly Action<string, string, int, int> _errorCallback;
 
         /// <summary>
         /// Initializes the rule.
         /// </summary>
         /// <param name="errorCallback">Callback invoked when a violation is detected.</param>
-        public RequireQualifiedSelectColumnsRule(Action<string, string, int, int> errorCallback)
+        public RequireQualifiedSelectColumnsRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
 
         /// <summary>
         /// Gets the rule ID.
         /// </summary>
-        public string RULE_NAME => "qualified-select-columns";
+        public override string RULE_NAME => "qualified-select-columns";
 
         /// <summary>
         /// Gets the violation message.
         /// </summary>
-        public string RULE_TEXT =>
+        public override string RULE_TEXT =>
             "Unqualified column reference in SELECT list when multiple tables are referenced. Qualify it with table alias (e.g., t.id).";
 
         /// <summary>
         /// Gets the violation severity.
         /// </summary>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
         /// <summary>
         /// Traverses the SELECT clause and detects unqualified columns when multiple tables are referenced.
@@ -85,7 +83,7 @@ namespace TSQLLintGeneralRulesPlugin
         /// <param name="fileLines">Array of lines in the file.</param>
         /// <param name="ruleViolation">The rule violation information.</param>
         /// <param name="actions">Line edit actions.</param>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
             // No automatic fix is provided for this rule.
         }
@@ -104,7 +102,7 @@ namespace TSQLLintGeneralRulesPlugin
             {
                 var line = column.StartLine;
                 var columnPosition = column.StartColumn;
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, line, columnPosition);
+                ReportViolation(line, columnPosition);
             }
         }
 
@@ -248,3 +246,5 @@ namespace TSQLLintGeneralRulesPlugin
         }
     }
 }
+
+

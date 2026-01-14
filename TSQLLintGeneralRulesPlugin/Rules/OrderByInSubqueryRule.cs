@@ -8,34 +8,32 @@ namespace TSQLLintGeneralRulesPlugin
     /// <summary>
     /// Prohibits the use of <c>ORDER BY</c> in subqueries unless <c>TOP</c>, <c>OFFSET</c>, <c>FOR XML</c>, or <c>FOR JSON</c> is present.
     /// </summary>
-    public sealed class OrderByInSubqueryRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class OrderByInSubqueryRule : SqlLintRuleBase
     {
-        private readonly Action<string, string, int, int> _errorCallback;
         private int _subqueryContextDepth = 0;
 
         /// <summary>
         /// Initializes the rule.
         /// </summary>
         /// <param name="errorCallback">Callback invoked when a violation is detected.</param>
-        public OrderByInSubqueryRule(Action<string, string, int, int> errorCallback)
+        public OrderByInSubqueryRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
 
         /// <summary>
         /// Gets the rule ID.
         /// </summary>
-        public string RULE_NAME => "order-by-in-subquery";
+        public override string RULE_NAME => "order-by-in-subquery";
 
         /// <summary>
         /// Gets the violation message.
         /// </summary>
-        public string RULE_TEXT => "ORDER BY in subquery without TOP, OFFSET, FOR XML, or FOR JSON is not allowed.";
+        public override string RULE_TEXT => "ORDER BY in subquery without TOP, OFFSET, FOR XML, or FOR JSON is not allowed.";
 
         /// <summary>
         /// Gets the violation severity.
         /// </summary>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Error;
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Error;
 
         /// <summary>
         /// Traverses SELECT clauses and detects usage of <c>ORDER BY</c> in subqueries.
@@ -73,10 +71,7 @@ namespace TSQLLintGeneralRulesPlugin
                 }
 
                 // Report violation if none of the above apply
-                _errorCallback?.Invoke(
-                    RULE_NAME,
-                    RULE_TEXT,
-                    node.OrderByClause.StartLine,
+                ReportViolation(node.OrderByClause.StartLine,
                     node.OrderByClause.StartColumn);
             }
 
@@ -173,9 +168,11 @@ namespace TSQLLintGeneralRulesPlugin
         /// <param name="fileLines">Array of lines in the file.</param>
         /// <param name="ruleViolation">The rule violation information.</param>
         /// <param name="actions">Line edit actions.</param>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
             // No automatic fix is provided for this rule.
         }
     }
 }
+
+

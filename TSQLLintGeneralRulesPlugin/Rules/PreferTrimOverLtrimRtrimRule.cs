@@ -8,20 +8,18 @@ namespace TSQLLintGeneralRulesPlugin;
 /// <summary>
 /// Encourages TRIM(x) instead of nested LTRIM(RTRIM(x)) or RTRIM(LTRIM(x)).
 /// </summary>
-public sealed class PreferTrimOverLtrimRtrimRule : TSqlFragmentVisitor, ISqlLintRule
+public sealed class PreferTrimOverLtrimRtrimRule : SqlLintRuleBase
 {
-    private readonly Action<string, string, int, int> _errorCallback;
 
-    public PreferTrimOverLtrimRtrimRule(Action<string, string, int, int> errorCallback)
+    public PreferTrimOverLtrimRtrimRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
     {
-        _errorCallback = errorCallback;
     }
 
-    public string RULE_NAME => "prefer-trim-over-ltrim-rtrim";
+    public override string RULE_NAME => "prefer-trim-over-ltrim-rtrim";
 
-    public string RULE_TEXT => "Prefer TRIM(x) over nested LTRIM(RTRIM(x)) for readability and standardization.";
+    public override string RULE_TEXT => "Prefer TRIM(x) over nested LTRIM(RTRIM(x)) for readability and standardization.";
 
-    public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+    public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
     public override void Visit(FunctionCall node)
     {
@@ -51,13 +49,13 @@ public sealed class PreferTrimOverLtrimRtrimRule : TSqlFragmentVisitor, ISqlLint
             innerCall.Parameters != null &&
             innerCall.Parameters.Count == 1)
         {
-            _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.StartLine, node.StartColumn);
+            ReportViolation(node.StartLine, node.StartColumn);
         }
 
         base.Visit(node);
     }
 
-    public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+    public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
     {
         // No automatic fix is provided for this rule.
     }
@@ -79,4 +77,5 @@ public sealed class PreferTrimOverLtrimRtrimRule : TSqlFragmentVisitor, ISqlLint
         return current;
     }
 }
+
 

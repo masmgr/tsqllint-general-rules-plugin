@@ -8,26 +8,24 @@ namespace TSQLLintGeneralRulesPlugin;
 /// <summary>
 /// Requires explicit parentheses when AND/OR are mixed in a predicate.
 /// </summary>
-public sealed class RequireParenthesesForMixedAndOrRule : TSqlFragmentVisitor, ISqlLintRule
+public sealed class RequireParenthesesForMixedAndOrRule : SqlLintRuleBase
 {
-    private readonly Action<string, string, int, int> _errorCallback;
 
-    public RequireParenthesesForMixedAndOrRule(Action<string, string, int, int> errorCallback)
+    public RequireParenthesesForMixedAndOrRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
     {
-        _errorCallback = errorCallback;
     }
 
-    public string RULE_NAME => "require-parentheses-for-mixed-and-or";
+    public override string RULE_NAME => "require-parentheses-for-mixed-and-or";
 
-    public string RULE_TEXT => "When mixing AND and OR, add parentheses to make operator precedence explicit and avoid misreads.";
+    public override string RULE_TEXT => "When mixing AND and OR, add parentheses to make operator precedence explicit and avoid misreads.";
 
-    public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+    public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
     public override void Visit(WhereClause node)
     {
         if (node?.SearchCondition != null && HasMixedAndOrWithoutParentheses(node.SearchCondition))
         {
-            _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.SearchCondition.StartLine, node.SearchCondition.StartColumn);
+            ReportViolation(node.SearchCondition.StartLine, node.SearchCondition.StartColumn);
         }
 
         base.Visit(node);
@@ -37,13 +35,13 @@ public sealed class RequireParenthesesForMixedAndOrRule : TSqlFragmentVisitor, I
     {
         if (node?.SearchCondition != null && HasMixedAndOrWithoutParentheses(node.SearchCondition))
         {
-            _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.SearchCondition.StartLine, node.SearchCondition.StartColumn);
+            ReportViolation(node.SearchCondition.StartLine, node.SearchCondition.StartColumn);
         }
 
         base.Visit(node);
     }
 
-    public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+    public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
     {
         // No automatic fix is provided for this rule.
     }
@@ -76,3 +74,5 @@ public sealed class RequireParenthesesForMixedAndOrRule : TSqlFragmentVisitor, I
         }
     }
 }
+
+

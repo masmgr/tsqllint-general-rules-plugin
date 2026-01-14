@@ -8,21 +8,19 @@ namespace TSQLLintGeneralRulesPlugin;
 /// <summary>
 /// Encourages CONCAT_WS() over + when building delimited strings.
 /// </summary>
-public sealed class PreferConcatWsRule : TSqlFragmentVisitor, ISqlLintRule
+public sealed class PreferConcatWsRule : SqlLintRuleBase
 {
-    private readonly Action<string, string, int, int> _errorCallback;
     private readonly List<BinaryExpression> _additionExpressions = new();
 
-    public PreferConcatWsRule(Action<string, string, int, int> errorCallback)
+    public PreferConcatWsRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
     {
-        _errorCallback = errorCallback;
     }
 
-    public string RULE_NAME => "prefer-concat-ws";
+    public override string RULE_NAME => "prefer-concat-ws";
 
-    public string RULE_TEXT => "Prefer CONCAT_WS(separator, ...) over + when concatenating values with repeated separators.";
+    public override string RULE_TEXT => "Prefer CONCAT_WS(separator, ...) over + when concatenating values with repeated separators.";
 
-    public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+    public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
     public override void Visit(BinaryExpression node)
     {
@@ -52,12 +50,12 @@ public sealed class PreferConcatWsRule : TSqlFragmentVisitor, ISqlLintRule
 
             if (TryMatchConcatWsCandidate(expression, out _, out _))
             {
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, expression.StartLine, expression.StartColumn);
+                ReportViolation(expression.StartLine, expression.StartColumn);
             }
         }
     }
 
-    public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+    public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
     {
         // No automatic fix is provided for this rule.
     }
@@ -214,4 +212,5 @@ public sealed class PreferConcatWsRule : TSqlFragmentVisitor, ISqlLintRule
         }
     }
 }
+
 

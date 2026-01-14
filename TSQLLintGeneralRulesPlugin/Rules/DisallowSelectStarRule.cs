@@ -8,20 +8,18 @@ namespace TSQLLintGeneralRulesPlugin;
 /// <summary>
 /// Disallows SELECT * (including qualified stars like t.*).
 /// </summary>
-public sealed class DisallowSelectStarRule : TSqlFragmentVisitor, ISqlLintRule
+public sealed class DisallowSelectStarRule : SqlLintRuleBase
 {
-    private readonly Action<string, string, int, int> _errorCallback;
 
-    public DisallowSelectStarRule(Action<string, string, int, int> errorCallback)
+    public DisallowSelectStarRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
     {
-        _errorCallback = errorCallback;
     }
 
-    public string RULE_NAME => "disallow-select-star";
+    public override string RULE_NAME => "disallow-select-star";
 
-    public string RULE_TEXT => "Avoid SELECT *; explicitly list columns to prevent breaking changes and improve readability.";
+    public override string RULE_TEXT => "Avoid SELECT *; explicitly list columns to prevent breaking changes and improve readability.";
 
-    public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+    public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
     public override void Visit(QuerySpecification node)
     {
@@ -37,7 +35,7 @@ public sealed class DisallowSelectStarRule : TSqlFragmentVisitor, ISqlLintRule
             {
                 if (element is SelectStarExpression star)
                 {
-                    _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, star.StartLine, star.StartColumn);
+                    ReportViolation(star.StartLine, star.StartColumn);
                 }
             }
         }
@@ -45,9 +43,10 @@ public sealed class DisallowSelectStarRule : TSqlFragmentVisitor, ISqlLintRule
         base.Visit(node);
     }
 
-    public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+    public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
     {
         // No automatic fix is provided for this rule.
     }
 }
+
 

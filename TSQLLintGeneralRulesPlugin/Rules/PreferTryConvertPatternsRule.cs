@@ -8,20 +8,18 @@ namespace TSQLLintGeneralRulesPlugin;
 /// <summary>
 /// Encourages TRY_CONVERT/TRY_CAST over CASE + ISNUMERIC/ISDATE gating patterns.
 /// </summary>
-public sealed class PreferTryConvertPatternsRule : TSqlFragmentVisitor, ISqlLintRule
+public sealed class PreferTryConvertPatternsRule : SqlLintRuleBase
 {
-    private readonly Action<string, string, int, int> _errorCallback;
 
-    public PreferTryConvertPatternsRule(Action<string, string, int, int> errorCallback)
+    public PreferTryConvertPatternsRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
     {
-        _errorCallback = errorCallback;
     }
 
-    public string RULE_NAME => "prefer-try-convert-patterns";
+    public override string RULE_NAME => "prefer-try-convert-patterns";
 
-    public string RULE_TEXT => "Prefer TRY_CONVERT/TRY_CAST over CASE WHEN ISNUMERIC/ISDATE(...) THEN CONVERT/CAST(...) patterns for clarity and correctness.";
+    public override string RULE_TEXT => "Prefer TRY_CONVERT/TRY_CAST over CASE WHEN ISNUMERIC/ISDATE(...) THEN CONVERT/CAST(...) patterns for clarity and correctness.";
 
-    public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+    public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
     public override void Visit(SearchedCaseExpression node)
     {
@@ -45,7 +43,7 @@ public sealed class PreferTryConvertPatternsRule : TSqlFragmentVisitor, ISqlLint
 
             if (IsConvertOrCastOfKey(whenClause.ThenExpression, guardedKey))
             {
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.StartLine, node.StartColumn);
+                ReportViolation(node.StartLine, node.StartColumn);
                 break;
             }
         }
@@ -53,7 +51,7 @@ public sealed class PreferTryConvertPatternsRule : TSqlFragmentVisitor, ISqlLint
         base.Visit(node);
     }
 
-    public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+    public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
     {
         // No automatic fix is provided for this rule.
     }
@@ -193,3 +191,5 @@ public sealed class PreferTryConvertPatternsRule : TSqlFragmentVisitor, ISqlLint
         }
     }
 }
+
+

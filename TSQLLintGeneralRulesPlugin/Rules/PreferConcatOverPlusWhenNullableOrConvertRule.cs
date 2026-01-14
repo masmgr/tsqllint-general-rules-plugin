@@ -8,28 +8,26 @@ namespace TSQLLintGeneralRulesPlugin
     /// <summary>
     /// Encourages CONCAT for string building when NULL-aware or conversion helpers are present.
     /// </summary>
-    public sealed class PreferConcatOverPlusWhenNullableOrConvertRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class PreferConcatOverPlusWhenNullableOrConvertRule : SqlLintRuleBase
     {
-        private readonly Action<string, string, int, int> _errorCallback;
         private readonly List<BinaryExpression> _additionExpressions = new();
 
         /// <summary>
         /// Initializes the rule.
         /// </summary>
         /// <param name="errorCallback">Callback invoked for violations.</param>
-        public PreferConcatOverPlusWhenNullableOrConvertRule(Action<string, string, int, int> errorCallback)
+        public PreferConcatOverPlusWhenNullableOrConvertRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
 
         /// <inheritdoc/>
-        public string RULE_NAME => "prefer-concat-over-plus-when-nullable-or-convert";
+        public override string RULE_NAME => "prefer-concat-over-plus-when-nullable-or-convert";
 
         /// <inheritdoc/>
-        public string RULE_TEXT => "Use CONCAT when string building involves ISNULL/CONVERT/CAST to avoid NULL propagation or readability issues.";
+        public override string RULE_TEXT => "Use CONCAT when string building involves ISNULL/CONVERT/CAST to avoid NULL propagation or readability issues.";
 
         /// <inheritdoc/>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
         /// <inheritdoc/>
         public override void Visit(BinaryExpression node)
@@ -61,13 +59,13 @@ namespace TSQLLintGeneralRulesPlugin
 
                 if (ShouldReport(expression))
                 {
-                    _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, expression.StartLine, expression.StartColumn);
+                    ReportViolation(expression.StartLine, expression.StartColumn);
                 }
             }
         }
 
         /// <inheritdoc/>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
             // No automatic fix is provided for this rule.
         }
@@ -199,3 +197,5 @@ namespace TSQLLintGeneralRulesPlugin
         }
     }
 }
+
+

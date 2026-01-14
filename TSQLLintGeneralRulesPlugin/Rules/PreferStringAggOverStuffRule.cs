@@ -8,20 +8,18 @@ namespace TSQLLintGeneralRulesPlugin;
 /// <summary>
 /// Warns on STUFF(... FOR XML PATH('') ...) string-aggregation patterns in favor of STRING_AGG().
 /// </summary>
-public sealed class PreferStringAggOverStuffRule : TSqlFragmentVisitor, ISqlLintRule
+public sealed class PreferStringAggOverStuffRule : SqlLintRuleBase
 {
-    private readonly Action<string, string, int, int> _errorCallback;
 
-    public PreferStringAggOverStuffRule(Action<string, string, int, int> errorCallback)
+    public PreferStringAggOverStuffRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
     {
-        _errorCallback = errorCallback;
     }
 
-    public string RULE_NAME => "prefer-string-agg-over-stuff";
+    public override string RULE_NAME => "prefer-string-agg-over-stuff";
 
-    public string RULE_TEXT => "Prefer STRING_AGG() over STUFF(... FOR XML PATH('') ...) for readability and correctness.";
+    public override string RULE_TEXT => "Prefer STRING_AGG() over STUFF(... FOR XML PATH('') ...) for readability and correctness.";
 
-    public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+    public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
     public override void Visit(FunctionCall node)
     {
@@ -47,13 +45,13 @@ public sealed class PreferStringAggOverStuffRule : TSqlFragmentVisitor, ISqlLint
         node.Parameters[0].Accept(visitor);
         if (visitor.Found)
         {
-            _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.StartLine, node.StartColumn);
+            ReportViolation(node.StartLine, node.StartColumn);
         }
 
         base.Visit(node);
     }
 
-    public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+    public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
     {
         // No automatic fix is provided for this rule.
     }
@@ -83,3 +81,5 @@ public sealed class PreferStringAggOverStuffRule : TSqlFragmentVisitor, ISqlLint
         }
     }
 }
+
+

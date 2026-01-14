@@ -8,21 +8,19 @@ namespace TSQLLintGeneralRulesPlugin;
 /// <summary>
 /// Warns on common "hand-rolled" JSON string build/parse patterns to encourage built-in JSON functions.
 /// </summary>
-public sealed class PreferJsonFunctionsRule : TSqlFragmentVisitor, ISqlLintRule
+public sealed class PreferJsonFunctionsRule : SqlLintRuleBase
 {
-    private readonly Action<string, string, int, int> _errorCallback;
     private readonly List<BinaryExpression> _additionExpressions = new();
 
-    public PreferJsonFunctionsRule(Action<string, string, int, int> errorCallback)
+    public PreferJsonFunctionsRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
     {
-        _errorCallback = errorCallback;
     }
 
-    public string RULE_NAME => "prefer-json-functions";
+    public override string RULE_NAME => "prefer-json-functions";
 
-    public string RULE_TEXT => "Prefer built-in JSON support (OPENJSON, JSON_VALUE, FOR JSON, JSON_QUERY, JSON_MODIFY) over manual string parsing/building.";
+    public override string RULE_TEXT => "Prefer built-in JSON support (OPENJSON, JSON_VALUE, FOR JSON, JSON_QUERY, JSON_MODIFY) over manual string parsing/building.";
 
-    public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+    public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
     public override void Visit(BinaryExpression node)
     {
@@ -52,7 +50,7 @@ public sealed class PreferJsonFunctionsRule : TSqlFragmentVisitor, ISqlLintRule
 
         if (node.Parameters[0] is StringLiteral pattern && LooksJsonLike(pattern.Value))
         {
-            _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.StartLine, node.StartColumn);
+            ReportViolation(node.StartLine, node.StartColumn);
         }
 
         base.Visit(node);
@@ -76,12 +74,12 @@ public sealed class PreferJsonFunctionsRule : TSqlFragmentVisitor, ISqlLintRule
 
             if (LooksLikeJsonConstruction(expression))
             {
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, expression.StartLine, expression.StartColumn);
+                ReportViolation(expression.StartLine, expression.StartColumn);
             }
         }
     }
 
-    public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+    public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
     {
         // No automatic fix is provided for this rule.
     }
@@ -172,4 +170,5 @@ public sealed class PreferJsonFunctionsRule : TSqlFragmentVisitor, ISqlLintRule
         }
     }
 }
+
 

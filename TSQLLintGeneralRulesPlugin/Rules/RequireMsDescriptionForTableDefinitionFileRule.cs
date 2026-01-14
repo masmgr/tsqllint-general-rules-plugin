@@ -8,7 +8,7 @@ namespace TSQLLintGeneralRulesPlugin
     /// <summary>
     /// Requires MS_Description extended properties alongside CREATE TABLE definitions when table and schema names are provided inline.
     /// </summary>
-    public sealed class RequireMsDescriptionForTableDefinitionFileRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class RequireMsDescriptionForTableDefinitionFileRule : SqlLintRuleBase
     {
         private static readonly HashSet<string> ValidProcedures = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -16,9 +16,8 @@ namespace TSQLLintGeneralRulesPlugin
             "sp_updateextendedproperty"
         };
 
-        private readonly Action<string, string, int, int> _errorCallback;
         private readonly Dictionary<string, CreateTableStatement> _tableDefinitions =
-            new(StringComparer.OrdinalIgnoreCase);
+    new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _tablesWithDescriptions =
             new(StringComparer.OrdinalIgnoreCase);
 
@@ -26,19 +25,18 @@ namespace TSQLLintGeneralRulesPlugin
         /// Initializes the rule.
         /// </summary>
         /// <param name="errorCallback">Callback invoked for violations.</param>
-        public RequireMsDescriptionForTableDefinitionFileRule(Action<string, string, int, int> errorCallback)
+        public RequireMsDescriptionForTableDefinitionFileRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
 
         /// <inheritdoc/>
-        public string RULE_NAME => "require-ms-description-for-table-definition-file";
+        public override string RULE_NAME => "require-ms-description-for-table-definition-file";
 
         /// <inheritdoc/>
-        public string RULE_TEXT => "Table definition files must include an MS_Description extended property for the table.";
+        public override string RULE_TEXT => "Table definition files must include an MS_Description extended property for the table.";
 
         /// <inheritdoc/>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
         /// <inheritdoc/>
         public override void Visit(CreateTableStatement node)
@@ -112,12 +110,12 @@ namespace TSQLLintGeneralRulesPlugin
                 }
 
                 var location = entry.Value.SchemaObjectName?.BaseIdentifier ?? (TSqlFragment)entry.Value;
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, location.StartLine, location.StartColumn);
+                ReportViolation(location.StartLine, location.StartColumn);
             }
         }
 
         /// <inheritdoc/>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
             // No automatic fix is provided for this rule.
         }
@@ -329,3 +327,5 @@ namespace TSQLLintGeneralRulesPlugin
             List<string?> Positional);
     }
 }
+
+

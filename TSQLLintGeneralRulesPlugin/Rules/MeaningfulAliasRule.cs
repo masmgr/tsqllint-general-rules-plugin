@@ -8,20 +8,18 @@ namespace TSQLLintGeneralRulesPlugin;
 /// <summary>
 /// Warns on single-character table aliases in multi-table queries.
 /// </summary>
-public sealed class MeaningfulAliasRule : TSqlFragmentVisitor, ISqlLintRule
+public sealed class MeaningfulAliasRule : SqlLintRuleBase
 {
-    private readonly Action<string, string, int, int> _errorCallback;
 
-    public MeaningfulAliasRule(Action<string, string, int, int> errorCallback)
+    public MeaningfulAliasRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
     {
-        _errorCallback = errorCallback;
     }
 
-    public string RULE_NAME => "meaningful-alias";
+    public override string RULE_NAME => "meaningful-alias";
 
-    public string RULE_TEXT => "Avoid single-character table aliases in multi-table queries; use meaningful aliases to reduce ambiguity (e.g., c for Customer is okay only when context is obvious).";
+    public override string RULE_TEXT => "Avoid single-character table aliases in multi-table queries; use meaningful aliases to reduce ambiguity (e.g., c for Customer is okay only when context is obvious).";
 
-    public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+    public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
     public override void Visit(QuerySpecification node)
     {
@@ -48,7 +46,7 @@ public sealed class MeaningfulAliasRule : TSqlFragmentVisitor, ISqlLintRule
         base.Visit(node);
     }
 
-    public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+    public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
     {
         // No automatic fix is provided for this rule.
     }
@@ -64,7 +62,7 @@ public sealed class MeaningfulAliasRule : TSqlFragmentVisitor, ISqlLintRule
             withAlias.Alias?.Value != null &&
             withAlias.Alias.Value.Length == 1)
         {
-            _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, withAlias.Alias.StartLine, withAlias.Alias.StartColumn);
+            ReportViolation(withAlias.Alias.StartLine, withAlias.Alias.StartColumn);
         }
 
         switch (tableReference)
@@ -117,4 +115,5 @@ public sealed class MeaningfulAliasRule : TSqlFragmentVisitor, ISqlLintRule
         };
     }
 }
+
 

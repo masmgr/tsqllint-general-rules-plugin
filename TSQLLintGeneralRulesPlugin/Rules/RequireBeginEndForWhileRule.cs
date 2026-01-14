@@ -8,27 +8,25 @@ namespace TSQLLintGeneralRulesPlugin
     /// <summary>
     /// Ensures WHILE loops always wrap their body in BEGIN/END.
     /// </summary>
-    public sealed class RequireBeginEndForWhileRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class RequireBeginEndForWhileRule : SqlLintRuleBase
     {
-        private readonly Action<string, string, int, int> _errorCallback;
 
         /// <summary>
         /// Initializes the rule.
         /// </summary>
         /// <param name="errorCallback">Callback invoked for violations.</param>
-        public RequireBeginEndForWhileRule(Action<string, string, int, int> errorCallback)
+        public RequireBeginEndForWhileRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
 
         /// <inheritdoc/>
-        public string RULE_NAME => "require-begin-end-for-while";
+        public override string RULE_NAME => "require-begin-end-for-while";
 
         /// <inheritdoc/>
-        public string RULE_TEXT => "WHILE loop bodies must be wrapped in BEGIN/END to avoid accidental single-statement traps.";
+        public override string RULE_TEXT => "WHILE loop bodies must be wrapped in BEGIN/END to avoid accidental single-statement traps.";
 
         /// <inheritdoc/>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
         /// <inheritdoc/>
         public override void Visit(WhileStatement node)
@@ -43,14 +41,14 @@ namespace TSQLLintGeneralRulesPlugin
             {
                 var line = node.StartLine > 0 ? node.StartLine : node.Statement?.StartLine ?? 0;
                 var column = node.StartColumn > 0 ? node.StartColumn : node.Statement?.StartColumn ?? 0;
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, line, column);
+                ReportViolation(line, column);
             }
 
             base.Visit(node);
         }
 
         /// <inheritdoc/>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
             // No automatic fix is provided for this rule.
         }
@@ -61,3 +59,5 @@ namespace TSQLLintGeneralRulesPlugin
         }
     }
 }
+
+

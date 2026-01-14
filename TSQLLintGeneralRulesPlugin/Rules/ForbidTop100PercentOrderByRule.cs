@@ -8,20 +8,18 @@ namespace TSQLLintGeneralRulesPlugin;
 /// <summary>
 /// Forbids TOP 100 PERCENT ORDER BY, which is typically ignored and misleading.
 /// </summary>
-public sealed class ForbidTop100PercentOrderByRule : TSqlFragmentVisitor, ISqlLintRule
+public sealed class ForbidTop100PercentOrderByRule : SqlLintRuleBase
 {
-    private readonly Action<string, string, int, int> _errorCallback;
 
-    public ForbidTop100PercentOrderByRule(Action<string, string, int, int> errorCallback)
+    public ForbidTop100PercentOrderByRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
     {
-        _errorCallback = errorCallback;
     }
 
-    public string RULE_NAME => "forbid-top-100-percent-order-by";
+    public override string RULE_NAME => "forbid-top-100-percent-order-by";
 
-    public string RULE_TEXT => "Avoid TOP 100 PERCENT ORDER BY; it is redundant and often ignored by the optimizer. Remove TOP 100 PERCENT or move ORDER BY to the outer query.";
+    public override string RULE_TEXT => "Avoid TOP 100 PERCENT ORDER BY; it is redundant and often ignored by the optimizer. Remove TOP 100 PERCENT or move ORDER BY to the outer query.";
 
-    public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+    public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
     public override void Visit(QuerySpecification node)
     {
@@ -35,13 +33,13 @@ public sealed class ForbidTop100PercentOrderByRule : TSqlFragmentVisitor, ISqlLi
             node.OrderByClause != null &&
             IsHundred(node.TopRowFilter.Expression))
         {
-            _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.TopRowFilter.StartLine, node.TopRowFilter.StartColumn);
+            ReportViolation(node.TopRowFilter.StartLine, node.TopRowFilter.StartColumn);
         }
 
         base.Visit(node);
     }
 
-    public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+    public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
     {
         // No automatic fix is provided for this rule.
     }
@@ -56,4 +54,5 @@ public sealed class ForbidTop100PercentOrderByRule : TSqlFragmentVisitor, ISqlLi
         };
     }
 }
+
 

@@ -8,21 +8,19 @@ namespace TSQLLintGeneralRulesPlugin;
 /// <summary>
 /// Warns when predicates apply conversions to column expressions, which can lead to implicit conversions and poor index usage.
 /// </summary>
-public sealed class AvoidImplicitConversionInPredicateRule : TSqlFragmentVisitor, ISqlLintRule
+public sealed class AvoidImplicitConversionInPredicateRule : SqlLintRuleBase
 {
-    private readonly Action<string, string, int, int> _errorCallback;
     private bool _inPredicate;
 
-    public AvoidImplicitConversionInPredicateRule(Action<string, string, int, int> errorCallback)
+    public AvoidImplicitConversionInPredicateRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
     {
-        _errorCallback = errorCallback;
     }
 
-    public string RULE_NAME => "avoid-implicit-conversion-in-predicate";
+    public override string RULE_NAME => "avoid-implicit-conversion-in-predicate";
 
-    public string RULE_TEXT => "Avoid conversions on columns in WHERE/JOIN predicates (e.g., CAST(col AS ...) = ...); they can force scans by preventing index seeks. Prefer correctly typed parameters/literals instead.";
+    public override string RULE_TEXT => "Avoid conversions on columns in WHERE/JOIN predicates (e.g., CAST(col AS ...) = ...); they can force scans by preventing index seeks. Prefer correctly typed parameters/literals instead.";
 
-    public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+    public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
     public override void ExplicitVisit(WhereClause node)
     {
@@ -87,7 +85,7 @@ public sealed class AvoidImplicitConversionInPredicateRule : TSqlFragmentVisitor
         {
             if (IsConversionAppliedToColumn(node.FirstExpression) || IsConversionAppliedToColumn(node.SecondExpression))
             {
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.StartLine, node.StartColumn);
+                ReportViolation(node.StartLine, node.StartColumn);
             }
         }
 
@@ -100,7 +98,7 @@ public sealed class AvoidImplicitConversionInPredicateRule : TSqlFragmentVisitor
         {
             if (IsConversionAppliedToColumn(node.FirstExpression) || IsConversionAppliedToColumn(node.SecondExpression))
             {
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.StartLine, node.StartColumn);
+                ReportViolation(node.StartLine, node.StartColumn);
             }
         }
 
@@ -113,7 +111,7 @@ public sealed class AvoidImplicitConversionInPredicateRule : TSqlFragmentVisitor
         {
             if (IsConversionAppliedToColumn(node.Expression))
             {
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.StartLine, node.StartColumn);
+                ReportViolation(node.StartLine, node.StartColumn);
             }
         }
 
@@ -129,14 +127,14 @@ public sealed class AvoidImplicitConversionInPredicateRule : TSqlFragmentVisitor
                     IsConversionAppliedToColumn(node.SecondExpression) ||
                     IsConversionAppliedToColumn(node.ThirdExpression)))
             {
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.StartLine, node.StartColumn);
+                ReportViolation(node.StartLine, node.StartColumn);
             }
         }
 
         base.Visit(node);
     }
 
-    public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+    public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
     {
         // No automatic fix is provided for this rule.
     }
@@ -211,3 +209,5 @@ public sealed class AvoidImplicitConversionInPredicateRule : TSqlFragmentVisitor
         }
     }
 }
+
+
