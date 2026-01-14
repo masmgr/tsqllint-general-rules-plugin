@@ -6,32 +6,33 @@ using TSQLLint.Common;
 namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
-    /// UPDATE/DELETE 繧ｹ繝・・繝医Γ繝ｳ繝医〒 TOP 繧帝∩縺代ｋ縺ｹ縺阪％縺ｨ繧呈､懷・縺吶ｋ繝ｫ繝ｼ繝ｫ縲・    /// </summary>
+    /// Detects TOP filters in UPDATE or DELETE statements without ORDER BY that can be non-deterministic.
+    /// </summary>
     public sealed class AvoidTopInDmlRule : SqlLintRuleBase
     {
-
         /// <summary>
-        /// 繝ｫ繝ｼ繝ｫ繧貞・譛溷喧縺励∪縺吶・        /// </summary>
-        /// <param name="errorCallback">驕募渚縺梧､懷・縺輔ｌ縺溘→縺阪↓蜻ｼ縺ｳ蜃ｺ縺輔ｌ繧九さ繝ｼ繝ｫ繝舌ャ繧ｯ縲・/param>
+        /// Configures the rule with the provided error callback.
+        /// </summary>
+        /// <param name="errorCallback">Callback invoked when a violation is detected.</param>
         public AvoidTopInDmlRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
         }
-
         /// <summary>
-        /// 繝ｫ繝ｼ繝ｫID繧貞叙蠕励＠縺ｾ縺吶・        /// </summary>
+        /// Rule identifier.
+        /// </summary>
         public override string RULE_NAME => "avoid-top-in-dml";
-
         /// <summary>
-        /// 驕募渚繝｡繝・そ繝ｼ繧ｸ繧貞叙蠕励＠縺ｾ縺吶・        /// </summary>
+        /// Warns about TOP usage in UPDATE/DELETE without deterministic ordering.
+        /// </summary>
         public override string RULE_TEXT => "TOP in UPDATE/DELETE statements without ORDER BY can produce non-deterministic results. Consider using a CTE with ORDER BY or specific WHERE clause.";
-
         /// <summary>
-        /// 驕募渚縺ｮ驥榊､ｧ蠎ｦ繧貞叙蠕励＠縺ｾ縺吶・        /// </summary>
+        /// Severity level for this rule.
+        /// </summary>
         public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
-
         /// <summary>
-        /// UPDATE 繧ｹ繝・・繝医Γ繝ｳ繝医ｒ險ｪ蝠上＠縺ｾ縺吶・        /// </summary>
-        /// <param name="node">險ｪ蝠上☆繧九ヮ繝ｼ繝峨・/param>
+        /// Reports UPDATE statements that include a TOP clause.
+        /// </summary>
+        /// <param name="node">UPDATE statement to inspect.</param>
         public override void Visit(UpdateStatement node)
         {
             if (node?.UpdateSpecification?.TopRowFilter != null)
@@ -42,10 +43,10 @@ namespace TSQLLintGeneralRulesPlugin
 
             base.Visit(node);
         }
-
         /// <summary>
-        /// DELETE 繧ｹ繝・・繝医Γ繝ｳ繝医ｒ險ｪ蝠上＠縺ｾ縺吶・        /// </summary>
-        /// <param name="node">險ｪ蝠上☆繧九ヮ繝ｼ繝峨・/param>
+        /// Reports DELETE statements that include a TOP clause.
+        /// </summary>
+        /// <param name="node">DELETE statement to inspect.</param>
         public override void Visit(DeleteStatement node)
         {
             if (node?.DeleteSpecification?.TopRowFilter != null)
@@ -56,12 +57,12 @@ namespace TSQLLintGeneralRulesPlugin
 
             base.Visit(node);
         }
-
         /// <summary>
-        /// 繝ｫ繝ｼ繝ｫ驕募渚繧定・蜍穂ｿｮ豁｣縺励∪縺吶ゅ％縺ｮ繝ｫ繝ｼ繝ｫ縺ｧ縺ｯ閾ｪ蜍穂ｿｮ豁｣繧呈署萓帙＠縺ｾ縺帙ｓ縲・        /// </summary>
-        /// <param name="fileLines">繝輔ぃ繧､繝ｫ縺ｮ陦後・驟榊・縲・/param>
-        /// <param name="ruleViolation">繝ｫ繝ｼ繝ｫ驕募渚諠・ｱ縲・/param>
-        /// <param name="actions">陦檎ｷｨ髮・い繧ｯ繧ｷ繝ｧ繝ｳ縲・/param>
+        /// Auto-fix is not implemented for this rule.
+        /// </summary>
+        /// <param name="fileLines">Source file lines available for modifications.</param>
+        /// <param name="ruleViolation">Violation details to fix.</param>
+        /// <param name="actions">Helper that applies line-level edits.</param>
         public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
             // 縺薙・繝ｫ繝ｼ繝ｫ縺ｧ縺ｯ閾ｪ蜍穂ｿｮ豁｣繧呈署萓帙＠縺ｾ縺帙ｓ縲・        }
