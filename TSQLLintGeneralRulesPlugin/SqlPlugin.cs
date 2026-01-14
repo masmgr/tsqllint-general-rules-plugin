@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TSQLLint.Common;
 
@@ -22,47 +23,60 @@ namespace TSQLLintGeneralRulesPlugin
         /// Gets a dictionary mapping rule IDs to rule implementations.
         /// </summary>
         /// <returns>A dictionary with rule IDs as keys and rule implementations as values.</returns>
-        public IDictionary<string, ISqlLintRule> GetRules() => new Dictionary<string, ISqlLintRule>
+        public IDictionary<string, ISqlLintRule> GetRules()
         {
-            ["prefer-string-agg-over-stuff"] = new PreferStringAggOverStuffRule(null!),
-            ["prefer-concat-over-plus"] = new PreferConcatOverPlusRule(null!),
-            ["prefer-concat-ws"] = new PreferConcatWsRule(null!),
-            ["prefer-trim-over-ltrim-rtrim"] = new PreferTrimOverLtrimRtrimRule(null!),
-            ["prefer-json-functions"] = new PreferJsonFunctionsRule(null!),
-            ["prefer-try-convert-patterns"] = new PreferTryConvertPatternsRule(null!),
-            ["disallow-select-star"] = new DisallowSelectStarRule(null!),
-            ["require-qualified-columns-everywhere"] = new RequireQualifiedColumnsEverywhereRule(null!),
-            ["require-parentheses-for-mixed-and-or"] = new RequireParenthesesForMixedAndOrRule(null!),
-            ["meaningful-alias"] = new MeaningfulAliasRule(null!),
-            ["forbid-top-100-percent-order-by"] = new ForbidTop100PercentOrderByRule(null!),
-            ["disallow-select-into"] = new DisallowSelectIntoRule(null!),
-            ["avoid-implicit-conversion-in-predicate"] = new AvoidImplicitConversionInPredicateRule(null!),
-            ["avoid-nolock-or-read-uncommitted"] = new AvoidNolockOrReadUncommittedRule(null!),
-            ["require-as-for-column-alias"] = new RequireAsForColumnAliasRule(null!),
-            ["require-as-for-table-alias"] = new RequireAsForTableAliasRule(null!),
-            ["require-explicit-join-type"] = new RequireExplicitJoinTypeRule(null!),
-            ["qualified-select-columns"] = new RequireQualifiedSelectColumnsRule(null!),
-            ["require-begin-end-for-if-with-controlflow-exception"] = new RequireBeginEndForIfWithControlFlowExceptionRule(null!),
-            ["prefer-coalesce-over-nested-isnull"] = new PreferCoalesceOverNestedIsNullRule(null!),
-            ["require-begin-end-for-while"] = new RequireBeginEndForWhileRule(null!),
-            ["require-column-list-for-insert-select"] = new RequireColumnListForInsertSelectRule(null!),
-            ["top-without-order-by"] = new TopWithoutOrderByRule(null!),
-            ["avoid-atat-identity"] = new AvoidAtAtIdentityRule(null!),
-            ["avoid-exec-dynamic-sql"] = new AvoidExecDynamicSqlRule(null!),
-            ["order-by-in-subquery"] = new OrderByInSubqueryRule(null!),
-            ["avoid-magic-convert-style-for-datetime"] = new AvoidMagicConvertStyleForDatetimeRule(null!),
-            ["avoid-merge"] = new AvoidMergeRule(null!),
-            ["avoid-top-in-dml"] = new AvoidTopInDmlRule(null!),
-            ["require-column-list-for-insert-values"] = new RequireColumnListForInsertValuesRule(null!),
-            ["avoid-nolock"] = new AvoidNolockRule(null!),
-            ["avoid-null-comparison"] = new AvoidNullComparisonRule(null!),
-            ["avoid-ambiguous-datetime-literal"] = new AvoidAmbiguousDatetimeLiteralRule(null!),
-            ["prefer-concat-over-plus-when-nullable-or-convert"] = new PreferConcatOverPlusWhenNullableOrConvertRule(null!),
-            ["require-try-catch-for-transaction"] = new RequireTryCatchForTransactionRule(null!),
-            ["require-xact-abort-on"] = new RequireXactAbortOnRule(null!),
-            ["require-primary-key-or-unique-constraint"] = new RequirePrimaryKeyOrUniqueConstraintRule(null!),
-            ["require-ms-description-for-table-definition-file"] = new RequireMsDescriptionForTableDefinitionFileRule(null!),
-            ["avoid-heap-table"] = new AvoidHeapTableRule(null!)
+            var rules = new Dictionary<string, ISqlLintRule>(StringComparer.Ordinal);
+
+            foreach (var ruleFactory in RuleFactories)
+            {
+                var rule = ruleFactory(null!);
+                rules.Add(rule.RULE_NAME, rule);
+            }
+
+            return rules;
+        }
+
+        private static readonly Func<Action<string, string, int, int>, ISqlLintRule>[] RuleFactories =
+        {
+            errorCallback => new PreferStringAggOverStuffRule(errorCallback),
+            errorCallback => new PreferConcatOverPlusRule(errorCallback),
+            errorCallback => new PreferConcatWsRule(errorCallback),
+            errorCallback => new PreferTrimOverLtrimRtrimRule(errorCallback),
+            errorCallback => new PreferJsonFunctionsRule(errorCallback),
+            errorCallback => new PreferTryConvertPatternsRule(errorCallback),
+            errorCallback => new DisallowSelectStarRule(errorCallback),
+            errorCallback => new RequireQualifiedColumnsEverywhereRule(errorCallback),
+            errorCallback => new RequireParenthesesForMixedAndOrRule(errorCallback),
+            errorCallback => new MeaningfulAliasRule(errorCallback),
+            errorCallback => new ForbidTop100PercentOrderByRule(errorCallback),
+            errorCallback => new DisallowSelectIntoRule(errorCallback),
+            errorCallback => new AvoidImplicitConversionInPredicateRule(errorCallback),
+            errorCallback => new AvoidNolockOrReadUncommittedRule(errorCallback),
+            errorCallback => new RequireAsForColumnAliasRule(errorCallback),
+            errorCallback => new RequireAsForTableAliasRule(errorCallback),
+            errorCallback => new RequireExplicitJoinTypeRule(errorCallback),
+            errorCallback => new RequireQualifiedSelectColumnsRule(errorCallback),
+            errorCallback => new RequireBeginEndForIfWithControlFlowExceptionRule(errorCallback),
+            errorCallback => new PreferCoalesceOverNestedIsNullRule(errorCallback),
+            errorCallback => new RequireBeginEndForWhileRule(errorCallback),
+            errorCallback => new RequireColumnListForInsertSelectRule(errorCallback),
+            errorCallback => new TopWithoutOrderByRule(errorCallback),
+            errorCallback => new AvoidAtAtIdentityRule(errorCallback),
+            errorCallback => new AvoidExecDynamicSqlRule(errorCallback),
+            errorCallback => new OrderByInSubqueryRule(errorCallback),
+            errorCallback => new AvoidMagicConvertStyleForDatetimeRule(errorCallback),
+            errorCallback => new AvoidMergeRule(errorCallback),
+            errorCallback => new AvoidTopInDmlRule(errorCallback),
+            errorCallback => new RequireColumnListForInsertValuesRule(errorCallback),
+            errorCallback => new AvoidNolockRule(errorCallback),
+            errorCallback => new AvoidNullComparisonRule(errorCallback),
+            errorCallback => new AvoidAmbiguousDatetimeLiteralRule(errorCallback),
+            errorCallback => new PreferConcatOverPlusWhenNullableOrConvertRule(errorCallback),
+            errorCallback => new RequireTryCatchForTransactionRule(errorCallback),
+            errorCallback => new RequireXactAbortOnRule(errorCallback),
+            errorCallback => new RequirePrimaryKeyOrUniqueConstraintRule(errorCallback),
+            errorCallback => new RequireMsDescriptionForTableDefinitionFileRule(errorCallback),
+            errorCallback => new AvoidHeapTableRule(errorCallback)
         };
     }
 }
