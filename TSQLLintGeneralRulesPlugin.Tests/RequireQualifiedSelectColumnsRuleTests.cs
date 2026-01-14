@@ -144,4 +144,41 @@ public sealed class RequireQualifiedSelectColumnsRuleTests
 
         Assert.Empty(violations);
     }
+
+    /// <summary>
+    /// Verifies that DATEADD / DATEDIFF datepart arguments (e.g., d, m) are not treated as column references.
+    /// </summary>
+    [Fact]
+    public void Allows_WhenDateFunctionsUseDatePartIdentifier()
+    {
+        var violations = TestSqlLintRunner.Lint(
+            """
+            SELECT
+                DATEADD(m, 1, u.created_at) AS next_month,
+                DATEDIFF(d, u.created_at, o.created_at) AS diff_days
+            FROM users u
+            JOIN orders o ON u.id = o.user_id;
+            """,
+            callback => new RequireQualifiedSelectColumnsRule(callback));
+
+        Assert.Empty(violations);
+    }
+
+    /// <summary>
+    /// Verifies that DATEADD / DATEDIFF still report unqualified columns in other arguments.
+    /// </summary>
+    [Fact]
+    public void Flags_WhenDateFunctionsUseUnqualifiedColumnArgument()
+    {
+        var violations = TestSqlLintRunner.Lint(
+            """
+            SELECT DATEADD(d, 1, created_at) AS next_day
+            FROM users u
+            JOIN orders o ON u.id = o.user_id;
+            """,
+            callback => new RequireQualifiedSelectColumnsRule(callback));
+
+        Assert.Single(violations);
+        Assert.Equal("qualified-select-columns", violations[0].RuleName);
+    }
 }

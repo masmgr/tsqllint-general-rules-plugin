@@ -53,3 +53,4 @@ JOIN orders o ON u.id = o.user_id;
 - SELECT statements with a single table reference are not subject to this rule.
 - Subqueries are evaluated independently; the outer FROM context is not inherited.
 - This rule only applies to SELECT lists; `ORDER BY`/`GROUP BY` are not subject to this rule.
+- `DATEADD`/`DATEDIFF` datepart arguments (e.g., `d`, `m`, `month`) are not treated as column references.

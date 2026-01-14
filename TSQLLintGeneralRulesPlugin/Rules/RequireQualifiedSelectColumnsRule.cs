@@ -144,11 +144,52 @@ namespace TSQLLintGeneralRulesPlugin
 
         private sealed class UnqualifiedColumnVisitor : TSqlFragmentVisitor
         {
+            private static readonly HashSet<string> DateParts = new(StringComparer.OrdinalIgnoreCase)
+            {
+                "year", "yy", "yyyy",
+                "quarter", "qq", "q",
+                "month", "mm", "m",
+                "dayofyear", "dy", "y",
+                "day", "dd", "d",
+                "week", "wk", "ww",
+                "weekday", "dw", "w",
+                "hour", "hh",
+                "minute", "mi", "n",
+                "second", "ss", "s",
+                "millisecond", "ms",
+                "microsecond", "mcs",
+                "nanosecond", "ns",
+                "timezoneoffset", "tz",
+                "iso_week", "isowk", "isoww"
+            };
+
             internal List<ColumnReferenceExpression> UnqualifiedColumns { get; } = new();
+
+            private readonly HashSet<ColumnReferenceExpression> _ignoredColumnReferences = new();
+
+            public override void ExplicitVisit(FunctionCall node)
+            {
+                if (node?.FunctionName?.Value != null &&
+                    (node.FunctionName.Value.Equals("DATEADD", StringComparison.OrdinalIgnoreCase) ||
+                        node.FunctionName.Value.Equals("DATEDIFF", StringComparison.OrdinalIgnoreCase)) &&
+                    node.Parameters != null &&
+                    node.Parameters.Count > 0 &&
+                    IsDatePartArgument(node.Parameters[0], out var datePartColumnReference))
+                {
+                    _ignoredColumnReferences.Add(datePartColumnReference);
+                }
+
+                base.ExplicitVisit(node);
+            }
 
             public override void Visit(ColumnReferenceExpression node)
             {
                 if (node == null)
+                {
+                    return;
+                }
+
+                if (_ignoredColumnReferences.Contains(node))
                 {
                     return;
                 }
@@ -173,6 +214,36 @@ namespace TSQLLintGeneralRulesPlugin
             public override void Visit(ScalarSubquery node)
             {
                 // Subquery is evaluated in its own scope; skip traversing it for the outer SELECT list.
+            }
+
+            private static bool IsDatePartArgument(ScalarExpression? expression, out ColumnReferenceExpression datePartColumnReference)
+            {
+                datePartColumnReference = null!;
+
+                if (expression is not ColumnReferenceExpression columnReferenceExpression)
+                {
+                    return false;
+                }
+
+                if (columnReferenceExpression.ColumnType == ColumnType.Wildcard)
+                {
+                    return false;
+                }
+
+                var identifiers = columnReferenceExpression.MultiPartIdentifier?.Identifiers;
+                if (identifiers == null || identifiers.Count != 1)
+                {
+                    return false;
+                }
+
+                var value = identifiers[0].Value;
+                if (value == null || !DateParts.Contains(value))
+                {
+                    return false;
+                }
+
+                datePartColumnReference = columnReferenceExpression;
+                return true;
             }
         }
     }
