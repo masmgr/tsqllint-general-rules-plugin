@@ -24,6 +24,20 @@ namespace TSQLLintGeneralRulesPlugin
         /// <returns>A dictionary with rule IDs as keys and rule implementations as values.</returns>
         public IDictionary<string, ISqlLintRule> GetRules() => new Dictionary<string, ISqlLintRule>
         {
+            ["prefer-string-agg-over-stuff"] = new PreferStringAggOverStuffRule(null!),
+            ["prefer-concat-over-plus"] = new PreferConcatOverPlusRule(null!),
+            ["prefer-concat-ws"] = new PreferConcatWsRule(null!),
+            ["prefer-trim-over-ltrim-rtrim"] = new PreferTrimOverLtrimRtrimRule(null!),
+            ["prefer-json-functions"] = new PreferJsonFunctionsRule(null!),
+            ["prefer-try-convert-patterns"] = new PreferTryConvertPatternsRule(null!),
+            ["disallow-select-star"] = new DisallowSelectStarRule(null!),
+            ["require-qualified-columns-everywhere"] = new RequireQualifiedColumnsEverywhereRule(null!),
+            ["require-parentheses-for-mixed-and-or"] = new RequireParenthesesForMixedAndOrRule(null!),
+            ["meaningful-alias"] = new MeaningfulAliasRule(null!),
+            ["forbid-top-100-percent-order-by"] = new ForbidTop100PercentOrderByRule(null!),
+            ["disallow-select-into"] = new DisallowSelectIntoRule(null!),
+            ["avoid-implicit-conversion-in-predicate"] = new AvoidImplicitConversionInPredicateRule(null!),
+            ["avoid-nolock-or-read-uncommitted"] = new AvoidNolockOrReadUncommittedRule(null!),
             ["require-as-for-column-alias"] = new RequireAsForColumnAliasRule(null!),
             ["require-as-for-table-alias"] = new RequireAsForTableAliasRule(null!),
             ["require-explicit-join-type"] = new RequireExplicitJoinTypeRule(null!),
