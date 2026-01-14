@@ -42,4 +42,23 @@ EXEC sys.sp_addextendedproperty
 
         Assert.Empty(violations);
     }
+
+    /// <summary>
+    /// Allows table definitions that include an MS_Description extended property using positional parameters.
+    /// </summary>
+    [Fact]
+    public void Allows_WhenDescriptionIsProvided_WithPositionalParameters()
+    {
+        var sql = @"CREATE TABLE dbo.Customer (
+    CustomerId INT NOT NULL,
+    Name NVARCHAR(100) NOT NULL
+);
+EXEC sys.sp_addextendedproperty
+  N'MS_Description', N'Customer master table',
+  N'SCHEMA', N'dbo',
+  N'TABLE',  N'Customer';";
+        var violations = TestSqlLintRunner.Lint(sql, callback => new RequireMsDescriptionForTableDefinitionFileRule(callback));
+
+        Assert.Empty(violations);
+    }
 }

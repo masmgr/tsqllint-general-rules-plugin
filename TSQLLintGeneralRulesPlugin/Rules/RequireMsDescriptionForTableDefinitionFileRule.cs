@@ -79,7 +79,7 @@ namespace TSQLLintGeneralRulesPlugin
                 var procedureName = GetProcedureName(proc);
                 if (IsTargetProcedure(procedureName))
                 {
-                    var parameters = BuildParameterMap(proc.Parameters);
+                    var parameters = BuildParameterData(proc.Parameters);
                     if (IsMsDescriptionCall(parameters, out var schemaName, out var tableName))
                     {
                         var key = CreateKey(schemaName, tableName);
@@ -123,6 +123,23 @@ namespace TSQLLintGeneralRulesPlugin
         }
 
         private static bool IsMsDescriptionCall(
+            ExecuteParameterData parameters,
+            out string? schemaName,
+            out string? tableName)
+        {
+            schemaName = null;
+            tableName = null;
+
+            if (parameters.Named.TryGetValue("@name", out var namedPropertyName) &&
+                !string.IsNullOrWhiteSpace(namedPropertyName))
+            {
+                return IsMsDescriptionCallWithNamedParameters(parameters.Named, out schemaName, out tableName);
+            }
+
+            return IsMsDescriptionCallWithPositionalParameters(parameters.Positional, out schemaName, out tableName);
+        }
+
+        private static bool IsMsDescriptionCallWithNamedParameters(
             Dictionary<string, string?> parameters,
             out string? schemaName,
             out string? tableName)
@@ -161,18 +178,69 @@ namespace TSQLLintGeneralRulesPlugin
             return true;
         }
 
-        private static Dictionary<string, string?> BuildParameterMap(IList<ExecuteParameter>? parameters)
+        private static bool IsMsDescriptionCallWithPositionalParameters(
+            List<string?> parameters,
+            out string? schemaName,
+            out string? tableName)
+        {
+            schemaName = null;
+            tableName = null;
+
+            if (parameters == null || parameters.Count < 6)
+            {
+                return false;
+            }
+
+            var propertyName = parameters[0];
+            var level0Type = parameters[2];
+            var schema = parameters[3];
+            var level1Type = parameters[4];
+            var table = parameters[5];
+
+            if (!string.Equals(propertyName, "MS_Description", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (!string.Equals(level0Type, "SCHEMA", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (!string.Equals(level1Type, "TABLE", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(schema) || string.IsNullOrWhiteSpace(table))
+            {
+                return false;
+            }
+
+            schemaName = schema.Trim();
+            tableName = table.Trim();
+            return true;
+        }
+
+        private static ExecuteParameterData BuildParameterData(IList<ExecuteParameter>? parameters)
         {
             var map = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+            var positional = new List<string?>();
             if (parameters == null)
             {
-                return map;
+                return new ExecuteParameterData(map, positional);
             }
 
             foreach (var parameter in parameters)
             {
-                if (parameter?.Variable == null || string.IsNullOrWhiteSpace(parameter.Variable.Name))
+                if (parameter == null)
                 {
+                    continue;
+                }
+
+                if (parameter.Variable == null || string.IsNullOrWhiteSpace(parameter.Variable.Name))
+                {
+                    positional.Add(ExtractLiteralValue(parameter.ParameterValue));
                     continue;
                 }
 
@@ -180,7 +248,7 @@ namespace TSQLLintGeneralRulesPlugin
                 map[parameterName] = ExtractLiteralValue(parameter.ParameterValue);
             }
 
-            return map;
+            return new ExecuteParameterData(map, positional);
         }
 
         private static string? ExtractLiteralValue(ScalarExpression? expression)
@@ -255,5 +323,9 @@ namespace TSQLLintGeneralRulesPlugin
             var baseName = name?.BaseIdentifier?.Value;
             return !string.IsNullOrWhiteSpace(baseName) && baseName.StartsWith("#", StringComparison.Ordinal);
         }
+
+        private sealed record ExecuteParameterData(
+            Dictionary<string, string?> Named,
+            List<string?> Positional);
     }
 }
