@@ -43,7 +43,8 @@ namespace TSQLLintGeneralRulesPlugin
 
             if (node.ElseStatement != null && node.ElseStatement is not IfStatement)
             {
-                EvaluateClause(node.ElseStatement, node.ElseStatement.StartLine, node.ElseStatement.StartColumn);
+                var (elseLine, elseColumn) = GetElseKeywordLocation(node);
+                EvaluateClause(node.ElseStatement, elseLine, elseColumn);
             }
 
             base.Visit(node);
@@ -67,8 +68,8 @@ namespace TSQLLintGeneralRulesPlugin
                 return;
             }
 
-            var line = statement.StartLine > 0 ? statement.StartLine : fallbackLine;
-            var column = statement.StartColumn > 0 ? statement.StartColumn : fallbackColumn;
+            var line = fallbackLine > 0 ? fallbackLine : statement.StartLine;
+            var column = fallbackColumn > 0 ? fallbackColumn : statement.StartColumn;
             _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, line, column);
         }
 
@@ -86,6 +87,48 @@ namespace TSQLLintGeneralRulesPlugin
                 ContinueStatement _ => false,
                 _ => true
             };
+        }
+
+        private static (int line, int column) GetElseKeywordLocation(IfStatement node)
+        {
+            if (node == null || node.ElseStatement == null)
+            {
+                return (node?.StartLine ?? 0, node?.StartColumn ?? 0);
+            }
+
+            var tokens = node.ScriptTokenStream;
+            if (tokens == null || tokens.Count == 0)
+            {
+                return (node.ElseStatement.StartLine, node.ElseStatement.StartColumn);
+            }
+
+            var searchStart = node.ThenStatement?.LastTokenIndex ?? node.FirstTokenIndex;
+            var searchEnd = node.ElseStatement.FirstTokenIndex;
+
+            if (searchStart < 0)
+            {
+                searchStart = 0;
+            }
+
+            if (searchEnd < 0)
+            {
+                searchEnd = node.LastTokenIndex;
+            }
+
+            if (searchEnd < 0 || searchEnd >= tokens.Count)
+            {
+                searchEnd = tokens.Count - 1;
+            }
+
+            for (var i = searchStart; i <= searchEnd && i < tokens.Count; i++)
+            {
+                if (tokens[i].TokenType == TSqlTokenType.Else)
+                {
+                    return (tokens[i].Line, tokens[i].Column);
+                }
+            }
+
+            return (node.ElseStatement.StartLine, node.ElseStatement.StartColumn);
         }
     }
 }

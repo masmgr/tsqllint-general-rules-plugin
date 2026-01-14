@@ -20,6 +20,8 @@ public sealed class RequireBeginEndForIfWithControlFlowExceptionRuleTests
 
         Assert.Single(violations);
         Assert.Equal("require-begin-end-for-if-with-controlflow-exception", violations[0].RuleName);
+        Assert.Equal(1, violations[0].Line);
+        Assert.Equal(1, violations[0].Column);
     }
 
     /// <summary>
@@ -59,5 +61,7 @@ public sealed class RequireBeginEndForIfWithControlFlowExceptionRuleTests
             callback => new RequireBeginEndForIfWithControlFlowExceptionRule(callback));
 
         Assert.Single(violations);
+        Assert.Equal(5, violations[0].Line);
+        Assert.Equal(1, violations[0].Column);
     }
 }

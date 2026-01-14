@@ -41,8 +41,9 @@ namespace TSQLLintGeneralRulesPlugin
 
             if (IsMissingBeginEnd(node.Statement))
             {
-                var location = node.Statement ?? (TSqlFragment)node;
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, location.StartLine, location.StartColumn);
+                var line = node.StartLine > 0 ? node.StartLine : node.Statement?.StartLine ?? 0;
+                var column = node.StartColumn > 0 ? node.StartColumn : node.Statement?.StartColumn ?? 0;
+                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, line, column);
             }
 
             base.Visit(node);

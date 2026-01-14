@@ -20,6 +20,8 @@ public sealed class RequireBeginEndForWhileRuleTests
 
         Assert.Single(violations);
         Assert.Equal("require-begin-end-for-while", violations[0].RuleName);
+        Assert.Equal(1, violations[0].Line);
+        Assert.Equal(1, violations[0].Column);
     }
 
     /// <summary>
