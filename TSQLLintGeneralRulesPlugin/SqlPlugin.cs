@@ -51,7 +51,6 @@ namespace TSQLLintGeneralRulesPlugin
             errorCallback => new ForbidTop100PercentOrderByRule(errorCallback),
             errorCallback => new DisallowSelectIntoRule(errorCallback),
             errorCallback => new AvoidImplicitConversionInPredicateRule(errorCallback),
-            errorCallback => new AvoidNolockOrReadUncommittedRule(errorCallback),
             errorCallback => new RequireAsForColumnAliasRule(errorCallback),
             errorCallback => new RequireAsForTableAliasRule(errorCallback),
             errorCallback => new RequireExplicitJoinTypeRule(errorCallback),

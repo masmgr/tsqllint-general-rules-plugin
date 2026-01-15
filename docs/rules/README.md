@@ -7,7 +7,24 @@ This page is a catalog of rules provided by this plugin. Each item links to a pe
 - These rules intentionally encode "best practices" and team preferences; it is normal to enable/disable rules per project.
 - Some rules can be noisy for one-off scripts, code generation, or migration tooling; consider scoping linting to the SQL you want to standardize.
 - SQL Server version matters for some recommendations (e.g., `STRING_AGG`, `TRIM`, `CONCAT_WS`, JSON functions). If you target older versions, disable those rules.
-- A few rules overlap in intent (e.g., `avoid-nolock` vs `avoid-nolock-or-read-uncommitted`, or `qualified-select-columns` vs `require-qualified-columns-everywhere`). Enable only one if you want to avoid duplicate findings.
+- A few rules overlap in intent. Choose based on your needs:
+  - ~~`avoid-nolock-or-read-uncommitted`~~ → **DEPRECATED:** Use [`avoid-nolock`](avoid-nolock.md) instead
+  - [`prefer-concat-over-plus`](prefer-concat-over-plus.md) vs [`prefer-concat-over-plus-when-nullable-or-convert`](prefer-concat-over-plus-when-nullable-or-convert.md): The latter is stricter and includes type conversions
+  - [`qualified-select-columns`](qualified-select-columns.md) vs [`require-qualified-columns-everywhere`](require-qualified-columns-everywhere.md): Use both together or choose based on strictness preference
+
+## Table of Contents
+
+- [Code Style & Naming Conventions](#code-style--naming-conventions) (3 rules)
+- [Control Flow Safety](#control-flow-safety) (2 rules)
+- [Query Structure & Clarity](#query-structure--clarity) (9 rules)
+- [Schema Design](#schema-design) (4 rules)
+- [Performance & Correctness](#performance--correctness) (5 rules)
+- [Security](#security) (2 rules)
+- [Data Access & Isolation](#data-access--isolation) (1 rule)
+- [Transaction Safety](#transaction-safety) (2 rules)
+- [Functions & Built-in Utilities](#functions--built-in-utilities) (10 rules)
+
+**Total: 38 active rules** (1 deprecated: `avoid-nolock-or-read-uncommitted`)
 
 ## Code Style & Naming Conventions
 
@@ -55,8 +72,7 @@ This page is a catalog of rules provided by this plugin. Each item links to a pe
 
 ## Data Access & Isolation
 
-- [`avoid-nolock`](avoid-nolock.md): Warns on `WITH (NOLOCK)` / `READ UNCOMMITTED`; dirty reads can return inconsistent or incorrect results.
-- [`avoid-nolock-or-read-uncommitted`](avoid-nolock-or-read-uncommitted.md): Also warns on `NOLOCK`/`READUNCOMMITTED` hints and `SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED`; overlaps with `avoid-nolock` (enable one).
+- [`avoid-nolock`](avoid-nolock.md): Warns on `WITH (NOLOCK)` / `READ UNCOMMITTED`; dirty reads can return inconsistent or incorrect results. *(Note: `avoid-nolock-or-read-uncommitted` has been deprecated in favor of this rule.)*
 
 ## Transaction Safety
 
@@ -67,8 +83,8 @@ This page is a catalog of rules provided by this plugin. Each item links to a pe
 
 - [`prefer-coalesce-over-nested-isnull`](prefer-coalesce-over-nested-isnull.md): Detects nested `ISNULL` and recommends `COALESCE`; reduces nesting and aligns with standard SQL behavior.
 - [`avoid-magic-convert-style-for-datetime`](avoid-magic-convert-style-for-datetime.md): Warns on datetime `CONVERT` style numbers (magic numbers); encourages clearer, safer formatting patterns.
-- [`prefer-concat-over-plus`](prefer-concat-over-plus.md): Recommends `CONCAT()` when `+` concatenation uses `ISNULL`/`COALESCE`; avoids subtle `NULL` propagation and improves intent.
-- [`prefer-concat-over-plus-when-nullable-or-convert`](prefer-concat-over-plus-when-nullable-or-convert.md): Recommends `CONCAT()` when `+` concatenation mixes `ISNULL`/`CAST`/`CONVERT`; particularly error-prone scenarios.
+- [`prefer-concat-over-plus`](prefer-concat-over-plus.md): Recommends `CONCAT()` when `+` concatenation uses `ISNULL`/`COALESCE`; avoids subtle `NULL` propagation. For stricter checking including type conversions, see the next rule.
+- [`prefer-concat-over-plus-when-nullable-or-convert`](prefer-concat-over-plus-when-nullable-or-convert.md): Stricter variant that also detects `CAST`/`CONVERT` in concatenations; enable instead of `prefer-concat-over-plus` for comprehensive coverage (SQL Server 2012+).
 - [`prefer-concat-ws`](prefer-concat-ws.md): Recommends `CONCAT_WS()` when concatenation repeats the same separator literal; improves readability and reduces duplication (SQL Server 2017+).
 - [`prefer-trim-over-ltrim-rtrim`](prefer-trim-over-ltrim-rtrim.md): Recommends `TRIM(x)` instead of `LTRIM(RTRIM(x))`; clearer and less error-prone (SQL Server 2017+).
 - [`prefer-string-agg-over-stuff`](prefer-string-agg-over-stuff.md): Recommends `STRING_AGG()` over `STUFF(... FOR XML PATH('') ...)`; simpler and typically faster/safer (SQL Server 2017+).

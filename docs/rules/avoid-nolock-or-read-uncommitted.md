@@ -1,26 +1,21 @@
-# avoid-nolock-or-read-uncommitted
+# avoid-nolock-or-read-uncommitted (DEPRECATED)
 
-## Summary
+**This rule has been deprecated and merged into [`avoid-nolock`](avoid-nolock.md).**
 
-Warns on `NOLOCK` / `READUNCOMMITTED` table hints and `SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED`.
+This rule was identical in functionality to `avoid-nolock` and has been consolidated to eliminate duplication.
 
-## Details
+## Migration
 
-- Rule ID: `avoid-nolock-or-read-uncommitted`
-- Severity: `Warning`
-- Message: `NOLOCK and READ UNCOMMITTED allow dirty reads which can return inconsistent or incorrect data. Prefer appropriate isolation levels or snapshot isolation.`
+If your `.tsqllintrc` configuration references this rule:
 
-## Examples
-
-### Invalid
-
-```sql
-SELECT * FROM dbo.Customer WITH (NOLOCK);
+```json
+"avoid-nolock-or-read-uncommitted": "error"
 ```
 
-### Valid
+Update it to:
 
-```sql
-SELECT * FROM dbo.Customer;
+```json
+"avoid-nolock": "error"
 ```
 
+The behavior is identical - no functional changes are required beyond the rule name.

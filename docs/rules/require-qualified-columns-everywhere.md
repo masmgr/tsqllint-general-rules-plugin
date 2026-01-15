@@ -32,3 +32,10 @@ WHERE a.CustomerId = 1
 ORDER BY b.CreatedAt;
 ```
 
+## Notes
+
+- This rule extends [`qualified-select-columns`](qualified-select-columns.md) to cover WHERE/JOIN/ORDER BY clauses
+- `qualified-select-columns` only applies to SELECT lists
+- Enable both rules for comprehensive column qualification enforcement
+- Or use only this rule if you want consistent qualification everywhere
+

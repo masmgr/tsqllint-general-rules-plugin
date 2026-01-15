@@ -54,3 +54,6 @@ JOIN orders o ON u.id = o.user_id;
 - Subqueries are evaluated independently; the outer FROM context is not inherited.
 - This rule only applies to SELECT lists; `ORDER BY`/`GROUP BY` are not subject to this rule.
 - `DATEADD`/`DATEDIFF` datepart arguments (e.g., `d`, `m`, `month`) are not treated as column references.
+- This rule only applies to columns in SELECT lists
+- For stricter enforcement across WHERE/JOIN/ORDER BY clauses, see [`require-qualified-columns-everywhere`](require-qualified-columns-everywhere.md)
+- These rules can be used together (recommended) or individually depending on your team's standards

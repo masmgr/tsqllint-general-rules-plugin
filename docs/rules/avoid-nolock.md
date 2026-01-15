@@ -6,6 +6,8 @@ Prohibits the use of NOLOCK table hint and READ UNCOMMITTED isolation level, whi
 
 ## Details
 
+> **Note:** The rule `avoid-nolock-or-read-uncommitted` has been deprecated and merged into this rule.
+
 - Rule ID: `avoid-nolock`
 - Severity: `Warning`
 - Message: `"NOLOCK and READ UNCOMMITTED allow dirty reads which can return incorrect data. Use appropriate isolation levels or snapshot isolation instead."`
