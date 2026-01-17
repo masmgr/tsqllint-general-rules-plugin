@@ -8,33 +8,31 @@ namespace TSQLLintGeneralRulesPlugin
     /// <summary>
     /// Warns when a SELECT statement uses <c>TOP</c> without an <c>ORDER BY</c> clause.
     /// </summary>
-    public sealed class TopWithoutOrderByRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class TopWithoutOrderByRule : SqlLintRuleBase
     {
-        private readonly Action<string, string, int, int> _errorCallback;
 
         /// <summary>
         /// Initializes the rule.
         /// </summary>
         /// <param name="errorCallback">Callback invoked when a violation is detected.</param>
-        public TopWithoutOrderByRule(Action<string, string, int, int> errorCallback)
+        public TopWithoutOrderByRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
 
         /// <summary>
         /// Gets the rule ID.
         /// </summary>
-        public string RULE_NAME => "top-without-order-by";
+        public override string RULE_NAME => "top-without-order-by";
 
         /// <summary>
         /// Gets the violation message.
         /// </summary>
-        public string RULE_TEXT => "TOP requires ORDER BY.";
+        public override string RULE_TEXT => "TOP requires ORDER BY.";
 
         /// <summary>
         /// Gets the violation severity.
         /// </summary>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
         /// <summary>
         /// Traverses SELECT clauses and reports violations when <c>TOP</c> is used without <c>ORDER BY</c>.
@@ -64,7 +62,7 @@ namespace TSQLLintGeneralRulesPlugin
 
             var line = node.TopRowFilter.StartLine > 0 ? node.TopRowFilter.StartLine : node.StartLine;
             var column = node.TopRowFilter.StartColumn > 0 ? node.TopRowFilter.StartColumn : node.StartColumn;
-            _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, line, column);
+            ReportViolation(line, column);
 
             base.Visit(node);
         }
@@ -99,9 +97,11 @@ namespace TSQLLintGeneralRulesPlugin
         /// <param name="fileLines">Array of lines in the file.</param>
         /// <param name="ruleViolation">The rule violation information.</param>
         /// <param name="actions">Line edit actions.</param>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
             // No automatic fix is provided for this rule.
         }
     }
 }
+
+

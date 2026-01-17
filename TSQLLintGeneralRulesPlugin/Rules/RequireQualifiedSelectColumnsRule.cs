@@ -8,34 +8,32 @@ namespace TSQLLintGeneralRulesPlugin
     /// <summary>
     /// Requires column references in the SELECT list to be qualified when multiple tables are referenced.
     /// </summary>
-    public sealed class RequireQualifiedSelectColumnsRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class RequireQualifiedSelectColumnsRule : SqlLintRuleBase
     {
-        private readonly Action<string, string, int, int> _errorCallback;
 
         /// <summary>
         /// Initializes the rule.
         /// </summary>
         /// <param name="errorCallback">Callback invoked when a violation is detected.</param>
-        public RequireQualifiedSelectColumnsRule(Action<string, string, int, int> errorCallback)
+        public RequireQualifiedSelectColumnsRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
 
         /// <summary>
         /// Gets the rule ID.
         /// </summary>
-        public string RULE_NAME => "qualified-select-columns";
+        public override string RULE_NAME => "qualified-select-columns";
 
         /// <summary>
         /// Gets the violation message.
         /// </summary>
-        public string RULE_TEXT =>
+        public override string RULE_TEXT =>
             "Unqualified column reference in SELECT list when multiple tables are referenced. Qualify it with table alias (e.g., t.id).";
 
         /// <summary>
         /// Gets the violation severity.
         /// </summary>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
         /// <summary>
         /// Traverses the SELECT clause and detects unqualified columns when multiple tables are referenced.
@@ -85,7 +83,7 @@ namespace TSQLLintGeneralRulesPlugin
         /// <param name="fileLines">Array of lines in the file.</param>
         /// <param name="ruleViolation">The rule violation information.</param>
         /// <param name="actions">Line edit actions.</param>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
             // No automatic fix is provided for this rule.
         }
@@ -104,7 +102,7 @@ namespace TSQLLintGeneralRulesPlugin
             {
                 var line = column.StartLine;
                 var columnPosition = column.StartColumn;
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, line, columnPosition);
+                ReportViolation(line, columnPosition);
             }
         }
 
@@ -144,11 +142,52 @@ namespace TSQLLintGeneralRulesPlugin
 
         private sealed class UnqualifiedColumnVisitor : TSqlFragmentVisitor
         {
+            private static readonly HashSet<string> DateParts = new(StringComparer.OrdinalIgnoreCase)
+            {
+                "year", "yy", "yyyy",
+                "quarter", "qq", "q",
+                "month", "mm", "m",
+                "dayofyear", "dy", "y",
+                "day", "dd", "d",
+                "week", "wk", "ww",
+                "weekday", "dw", "w",
+                "hour", "hh",
+                "minute", "mi", "n",
+                "second", "ss", "s",
+                "millisecond", "ms",
+                "microsecond", "mcs",
+                "nanosecond", "ns",
+                "timezoneoffset", "tz",
+                "iso_week", "isowk", "isoww"
+            };
+
             internal List<ColumnReferenceExpression> UnqualifiedColumns { get; } = new();
+
+            private readonly HashSet<ColumnReferenceExpression> _ignoredColumnReferences = new();
+
+            public override void ExplicitVisit(FunctionCall node)
+            {
+                if (node?.FunctionName?.Value != null &&
+                    (node.FunctionName.Value.Equals("DATEADD", StringComparison.OrdinalIgnoreCase) ||
+                        node.FunctionName.Value.Equals("DATEDIFF", StringComparison.OrdinalIgnoreCase)) &&
+                    node.Parameters != null &&
+                    node.Parameters.Count > 0 &&
+                    IsDatePartArgument(node.Parameters[0], out var datePartColumnReference))
+                {
+                    _ignoredColumnReferences.Add(datePartColumnReference);
+                }
+
+                base.ExplicitVisit(node);
+            }
 
             public override void Visit(ColumnReferenceExpression node)
             {
                 if (node == null)
+                {
+                    return;
+                }
+
+                if (_ignoredColumnReferences.Contains(node))
                 {
                     return;
                 }
@@ -174,6 +213,38 @@ namespace TSQLLintGeneralRulesPlugin
             {
                 // Subquery is evaluated in its own scope; skip traversing it for the outer SELECT list.
             }
+
+            private static bool IsDatePartArgument(ScalarExpression? expression, out ColumnReferenceExpression datePartColumnReference)
+            {
+                datePartColumnReference = null!;
+
+                if (expression is not ColumnReferenceExpression columnReferenceExpression)
+                {
+                    return false;
+                }
+
+                if (columnReferenceExpression.ColumnType == ColumnType.Wildcard)
+                {
+                    return false;
+                }
+
+                var identifiers = columnReferenceExpression.MultiPartIdentifier?.Identifiers;
+                if (identifiers == null || identifiers.Count != 1)
+                {
+                    return false;
+                }
+
+                var value = identifiers[0].Value;
+                if (value == null || !DateParts.Contains(value))
+                {
+                    return false;
+                }
+
+                datePartColumnReference = columnReferenceExpression;
+                return true;
+            }
         }
     }
 }
+
+

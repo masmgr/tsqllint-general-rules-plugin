@@ -31,3 +31,6 @@ SET @s = CONCAT(ISNULL(@a, ''), ',', CONVERT(varchar(10), @d, 120));
 
 - Detection requires a literal (e.g., `' ,'` or `N'...'`) to reduce false positives in purely arithmetic expressions.
 - The rule intentionally ignores concatenations that do not mix with `ISNULL`/`CONVERT`/`CAST`.
+- This rule extends [`prefer-concat-over-plus`](prefer-concat-over-plus.md) to include type conversion functions (`CONVERT`/`CAST`)
+- Enable this rule instead of `prefer-concat-over-plus` if you want stricter concatenation linting
+- These rules are mutually exclusive - choose one based on your strictness preference

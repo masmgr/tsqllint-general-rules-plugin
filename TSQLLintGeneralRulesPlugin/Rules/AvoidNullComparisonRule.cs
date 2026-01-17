@@ -6,40 +6,33 @@ using TSQLLint.Common;
 namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
-    /// NULL との比較 (= NULL, <> NULL) を避けるべきことを検出するルール。
+    /// Detects comparisons that use = or <> with NULL, which evaluate to UNKNOWN.
     /// </summary>
-    public sealed class AvoidNullComparisonRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class AvoidNullComparisonRule : SqlLintRuleBase
     {
-        private readonly Action<string, string, int, int> _errorCallback;
-
         /// <summary>
-        /// ルールを初期化します。
+        /// Configures the rule with the provided error callback.
         /// </summary>
-        /// <param name="errorCallback">違反が検出されたときに呼び出されるコールバック。</param>
-        public AvoidNullComparisonRule(Action<string, string, int, int> errorCallback)
+        /// <param name="errorCallback">Callback invoked when a violation is detected.</param>
+        public AvoidNullComparisonRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
-
         /// <summary>
-        /// ルールIDを取得します。
+        /// Rule identifier.
         /// </summary>
-        public string RULE_NAME => "avoid-null-comparison";
-
+        public override string RULE_NAME => "avoid-null-comparison";
         /// <summary>
-        /// 違反メッセージを取得します。
+        /// Warns against equality comparisons with NULL because they return UNKNOWN.
         /// </summary>
-        public string RULE_TEXT => "Comparing with NULL using = or <> always evaluates to UNKNOWN. Use IS NULL or IS NOT NULL instead.";
-
+        public override string RULE_TEXT => "Comparing with NULL using = or <> always evaluates to UNKNOWN. Use IS NULL or IS NOT NULL instead.";
         /// <summary>
-        /// 違反の重大度を取得します。
+        /// Severity level for this rule.
         /// </summary>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
-
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
         /// <summary>
-        /// ブール比較式を訪問します。
+        /// Identifies comparisons that include NULL literals.
         /// </summary>
-        /// <param name="node">訪問するノード。</param>
+        /// <param name="node">Boolean comparison expression to inspect.</param>
         public override void Visit(BooleanComparisonExpression node)
         {
             if (node == null)
@@ -54,32 +47,33 @@ namespace TSQLLintGeneralRulesPlugin
             {
                 if (IsNullLiteral(node.FirstExpression) || IsNullLiteral(node.SecondExpression))
                 {
-                    _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.StartLine, node.StartColumn);
+                    ReportViolation(node.StartLine, node.StartColumn);
                 }
             }
 
             base.Visit(node);
         }
-
         /// <summary>
-        /// 式が NULL リテラルかどうかを確認します。
+        /// Determines whether the provided expression is a NULL literal.
         /// </summary>
-        /// <param name="expression">確認する式。</param>
-        /// <returns>式が NULL リテラルの場合は true。</returns>
+        /// <param name="expression">Scalar expression to check.</param>
+        /// <returns>True when the expression is a NullLiteral instance.</returns>
         private static bool IsNullLiteral(ScalarExpression? expression)
         {
             return expression is NullLiteral;
         }
-
         /// <summary>
-        /// ルール違反を自動修正します。このルールでは自動修正を提供しません。
+        /// Auto-fix is not implemented for this rule.
         /// </summary>
-        /// <param name="fileLines">ファイルの行の配列。</param>
-        /// <param name="ruleViolation">ルール違反情報。</param>
-        /// <param name="actions">行編集アクション。</param>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        /// <param name="fileLines">Source file lines available for modifications.</param>
+        /// <param name="ruleViolation">Violation details to fix.</param>
+        /// <param name="actions">Helper that applies line-level edits.</param>
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
-            // このルールでは自動修正を提供しません。
+            // 縺薙・繝ｫ繝ｼ繝ｫ縺ｧ縺ｯ閾ｪ蜍穂ｿｮ豁｣繧呈署萓帙＠縺ｾ縺帙ｓ縲・        }
         }
     }
+
+
 }
+

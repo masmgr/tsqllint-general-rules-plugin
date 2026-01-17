@@ -8,7 +8,7 @@ namespace TSQLLintGeneralRulesPlugin
     /// <summary>
     /// Requires MS_Description extended properties alongside CREATE TABLE definitions when table and schema names are provided inline.
     /// </summary>
-    public sealed class RequireMsDescriptionForTableDefinitionFileRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class RequireMsDescriptionForTableDefinitionFileRule : SqlLintRuleBase
     {
         private static readonly HashSet<string> ValidProcedures = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -16,9 +16,8 @@ namespace TSQLLintGeneralRulesPlugin
             "sp_updateextendedproperty"
         };
 
-        private readonly Action<string, string, int, int> _errorCallback;
         private readonly Dictionary<string, CreateTableStatement> _tableDefinitions =
-            new(StringComparer.OrdinalIgnoreCase);
+    new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> _tablesWithDescriptions =
             new(StringComparer.OrdinalIgnoreCase);
 
@@ -26,19 +25,18 @@ namespace TSQLLintGeneralRulesPlugin
         /// Initializes the rule.
         /// </summary>
         /// <param name="errorCallback">Callback invoked for violations.</param>
-        public RequireMsDescriptionForTableDefinitionFileRule(Action<string, string, int, int> errorCallback)
+        public RequireMsDescriptionForTableDefinitionFileRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
 
         /// <inheritdoc/>
-        public string RULE_NAME => "require-ms-description-for-table-definition-file";
+        public override string RULE_NAME => "require-ms-description-for-table-definition-file";
 
         /// <inheritdoc/>
-        public string RULE_TEXT => "Table definition files must include an MS_Description extended property for the table.";
+        public override string RULE_TEXT => "Table definition files must include an MS_Description extended property for the table.";
 
         /// <inheritdoc/>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
         /// <inheritdoc/>
         public override void Visit(CreateTableStatement node)
@@ -79,7 +77,7 @@ namespace TSQLLintGeneralRulesPlugin
                 var procedureName = GetProcedureName(proc);
                 if (IsTargetProcedure(procedureName))
                 {
-                    var parameters = BuildParameterMap(proc.Parameters);
+                    var parameters = BuildParameterData(proc.Parameters);
                     if (IsMsDescriptionCall(parameters, out var schemaName, out var tableName))
                     {
                         var key = CreateKey(schemaName, tableName);
@@ -112,17 +110,34 @@ namespace TSQLLintGeneralRulesPlugin
                 }
 
                 var location = entry.Value.SchemaObjectName?.BaseIdentifier ?? (TSqlFragment)entry.Value;
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, location.StartLine, location.StartColumn);
+                ReportViolation(location.StartLine, location.StartColumn);
             }
         }
 
         /// <inheritdoc/>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
             // No automatic fix is provided for this rule.
         }
 
         private static bool IsMsDescriptionCall(
+            ExecuteParameterData parameters,
+            out string? schemaName,
+            out string? tableName)
+        {
+            schemaName = null;
+            tableName = null;
+
+            if (parameters.Named.TryGetValue("@name", out var namedPropertyName) &&
+                !string.IsNullOrWhiteSpace(namedPropertyName))
+            {
+                return IsMsDescriptionCallWithNamedParameters(parameters.Named, out schemaName, out tableName);
+            }
+
+            return IsMsDescriptionCallWithPositionalParameters(parameters.Positional, out schemaName, out tableName);
+        }
+
+        private static bool IsMsDescriptionCallWithNamedParameters(
             Dictionary<string, string?> parameters,
             out string? schemaName,
             out string? tableName)
@@ -161,18 +176,69 @@ namespace TSQLLintGeneralRulesPlugin
             return true;
         }
 
-        private static Dictionary<string, string?> BuildParameterMap(IList<ExecuteParameter>? parameters)
+        private static bool IsMsDescriptionCallWithPositionalParameters(
+            List<string?> parameters,
+            out string? schemaName,
+            out string? tableName)
+        {
+            schemaName = null;
+            tableName = null;
+
+            if (parameters == null || parameters.Count < 6)
+            {
+                return false;
+            }
+
+            var propertyName = parameters[0];
+            var level0Type = parameters[2];
+            var schema = parameters[3];
+            var level1Type = parameters[4];
+            var table = parameters[5];
+
+            if (!string.Equals(propertyName, "MS_Description", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (!string.Equals(level0Type, "SCHEMA", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (!string.Equals(level1Type, "TABLE", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(schema) || string.IsNullOrWhiteSpace(table))
+            {
+                return false;
+            }
+
+            schemaName = schema.Trim();
+            tableName = table.Trim();
+            return true;
+        }
+
+        private static ExecuteParameterData BuildParameterData(IList<ExecuteParameter>? parameters)
         {
             var map = new Dictionary<string, string?>(StringComparer.OrdinalIgnoreCase);
+            var positional = new List<string?>();
             if (parameters == null)
             {
-                return map;
+                return new ExecuteParameterData(map, positional);
             }
 
             foreach (var parameter in parameters)
             {
-                if (parameter?.Variable == null || string.IsNullOrWhiteSpace(parameter.Variable.Name))
+                if (parameter == null)
                 {
+                    continue;
+                }
+
+                if (parameter.Variable == null || string.IsNullOrWhiteSpace(parameter.Variable.Name))
+                {
+                    positional.Add(ExtractLiteralValue(parameter.ParameterValue));
                     continue;
                 }
 
@@ -180,7 +246,7 @@ namespace TSQLLintGeneralRulesPlugin
                 map[parameterName] = ExtractLiteralValue(parameter.ParameterValue);
             }
 
-            return map;
+            return new ExecuteParameterData(map, positional);
         }
 
         private static string? ExtractLiteralValue(ScalarExpression? expression)
@@ -255,5 +321,11 @@ namespace TSQLLintGeneralRulesPlugin
             var baseName = name?.BaseIdentifier?.Value;
             return !string.IsNullOrWhiteSpace(baseName) && baseName.StartsWith("#", StringComparison.Ordinal);
         }
+
+        private sealed record ExecuteParameterData(
+            Dictionary<string, string?> Named,
+            List<string?> Positional);
     }
 }
+
+

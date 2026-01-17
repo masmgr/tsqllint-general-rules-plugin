@@ -8,33 +8,31 @@ namespace TSQLLintGeneralRulesPlugin
     /// <summary>
     /// Detects styled <c>CONVERT</c> calls when converting datetime to string and recommends avoiding magic style numbers.
     /// </summary>
-    public sealed class AvoidMagicConvertStyleForDatetimeRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class AvoidMagicConvertStyleForDatetimeRule : SqlLintRuleBase
     {
-        private readonly Action<string, string, int, int> _errorCallback;
 
         /// <summary>
         /// Initializes the rule.
         /// </summary>
         /// <param name="errorCallback">Callback invoked when a violation is detected.</param>
-        public AvoidMagicConvertStyleForDatetimeRule(Action<string, string, int, int> errorCallback)
+        public AvoidMagicConvertStyleForDatetimeRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
 
         /// <summary>
         /// Gets the rule ID.
         /// </summary>
-        public string RULE_NAME => "avoid-magic-convert-style-for-datetime";
+        public override string RULE_NAME => "avoid-magic-convert-style-for-datetime";
 
         /// <summary>
         /// Gets the violation message.
         /// </summary>
-        public string RULE_TEXT => "Avoid CONVERT with style numbers for datetime formatting. Prefer ISO-style conversions or date types; reserve FORMAT() for small UI output with explicit culture.";
+        public override string RULE_TEXT => "Avoid CONVERT with style numbers for datetime formatting. Prefer ISO-style conversions or date types; reserve FORMAT() for small UI output with explicit culture.";
 
         /// <summary>
         /// Gets the violation severity.
         /// </summary>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
         /// <summary>
         /// Traverses CONVERT calls and reports violations when a style number is used to convert to a string type.
@@ -63,7 +61,7 @@ namespace TSQLLintGeneralRulesPlugin
             }
 
             // Report violation
-            _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.StartLine, node.StartColumn);
+            ReportViolation(node.StartLine, node.StartColumn);
 
             base.Visit(node);
         }
@@ -74,7 +72,7 @@ namespace TSQLLintGeneralRulesPlugin
         /// <param name="fileLines">Array of lines in the file.</param>
         /// <param name="ruleViolation">The rule violation information.</param>
         /// <param name="actions">Line edit actions.</param>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
             // No automatic fix is provided for this rule.
         }
@@ -102,3 +100,5 @@ namespace TSQLLintGeneralRulesPlugin
         }
     }
 }
+
+

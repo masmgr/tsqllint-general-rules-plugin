@@ -7,40 +7,33 @@ using TSQLLint.Common;
 namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
-    /// スラッシュで区切られた曖昧な日付リテラルを避けるべきことを検出するルール。
+    /// Flags slash-delimited date literals that depend on session dateformat settings.
     /// </summary>
-    public sealed class AvoidAmbiguousDatetimeLiteralRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class AvoidAmbiguousDatetimeLiteralRule : SqlLintRuleBase
     {
-        private readonly Action<string, string, int, int> _errorCallback;
-
         /// <summary>
-        /// ルールを初期化します。
+        /// Configures the rule with the provided error callback.
         /// </summary>
-        /// <param name="errorCallback">違反が検出されたときに呼び出されるコールバック。</param>
-        public AvoidAmbiguousDatetimeLiteralRule(Action<string, string, int, int> errorCallback)
+        /// <param name="errorCallback">Callback invoked when a violation is detected.</param>
+        public AvoidAmbiguousDatetimeLiteralRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
-
         /// <summary>
-        /// ルールIDを取得します。
+        /// Rule identifier.
         /// </summary>
-        public string RULE_NAME => "avoid-ambiguous-datetime-literal";
-
+        public override string RULE_NAME => "avoid-ambiguous-datetime-literal";
         /// <summary>
-        /// 違反メッセージを取得します。
+        /// Warns when slash-delimited date literals are used instead of ISO formats.
         /// </summary>
-        public string RULE_TEXT => "Date literals with slash delimiters (/) are ambiguous and depend on language settings. Use ISO 8601 format (YYYY-MM-DD) or date construction functions instead.";
-
+        public override string RULE_TEXT => "Date literals with slash delimiters (/) are ambiguous and depend on language settings. Use ISO 8601 format (YYYY-MM-DD) or date construction functions instead.";
         /// <summary>
-        /// 違反の重大度を取得します。
+        /// Severity level for this rule.
         /// </summary>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
-
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
         /// <summary>
-        /// 文字列リテラルを訪問します。
+        /// Inspects string literals for slash-delimited date patterns.
         /// </summary>
-        /// <param name="node">訪問するノード。</param>
+        /// <param name="node">String literal to examine.</param>
         public override void Visit(StringLiteral node)
         {
             if (node == null || string.IsNullOrWhiteSpace(node.Value))
@@ -53,17 +46,16 @@ namespace TSQLLintGeneralRulesPlugin
 
             if (ContainsSlashDelimitedDate(value))
             {
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.StartLine, node.StartColumn);
+                ReportViolation(node.StartLine, node.StartColumn);
             }
 
             base.Visit(node);
         }
-
         /// <summary>
-        /// 文字列がスラッシュで区切られた日付パターンを含むかどうかを確認します。
+        /// Determines whether the literal looks like a slash-delimited date.
         /// </summary>
-        /// <param name="value">確認する文字列値。</param>
-        /// <returns>スラッシュで区切られた日付パターンが含まれている場合は true。</returns>
+        /// <param name="value">Literal text without surrounding quotes.</param>
+        /// <returns>True if the literal matches a slash-delimited date pattern.</returns>
         private static bool ContainsSlashDelimitedDate(string value)
         {
             if (!value.Contains('/'))
@@ -71,21 +63,23 @@ namespace TSQLLintGeneralRulesPlugin
                 return false;
             }
 
-            // スラッシュで区切られた日付パターンをマッチング: YYYY/MM/DD, MM/DD/YYYY など
-            // パターン: 1-4 桁 / 1-2 桁 / 1-4 桁
+            // 郢ｧ・ｹ郢晢ｽｩ郢昴・縺咏ｹ晢ｽ･邵ｺ・ｧ陋ｹ・ｺ陋ｻ繝ｻ・臥ｹｧ蠕娯螺隴鯉ｽ･闔牙･繝ｱ郢ｧ・ｿ郢晢ｽｼ郢晢ｽｳ郢ｧ蛛ｵ繝ｻ郢昴・繝｡郢晢ｽｳ郢ｧ・ｰ: YYYY/MM/DD, MM/DD/YYYY 邵ｺ・ｪ邵ｺ・ｩ
+            // 郢昜ｻ｣縺｡郢晢ｽｼ郢晢ｽｳ: 1-4 隴ｯ繝ｻ/ 1-2 隴ｯ繝ｻ/ 1-4 隴ｯ繝ｻ
             var datePattern = @"^\d{1,4}/\d{1,2}/\d{1,4}";
             return Regex.IsMatch(value, datePattern);
         }
-
         /// <summary>
-        /// ルール違反を自動修正します。このルールでは自動修正を提供しません。
+        /// Auto-fix is not implemented for this rule.
         /// </summary>
-        /// <param name="fileLines">ファイルの行の配列。</param>
-        /// <param name="ruleViolation">ルール違反情報。</param>
-        /// <param name="actions">行編集アクション。</param>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        /// <param name="fileLines">Source file lines available for modifications.</param>
+        /// <param name="ruleViolation">Violation details to fix.</param>
+        /// <param name="actions">Helper that applies line-level edits.</param>
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
-            // このルールでは自動修正を提供しません。
+            // 邵ｺ阮吶・郢晢ｽｫ郢晢ｽｼ郢晢ｽｫ邵ｺ・ｧ邵ｺ・ｯ髢ｾ・ｪ陷咲ｩゑｽｿ・ｮ雎・ｽ｣郢ｧ蜻育ｽｲ關灘ｸ呻ｼ邵ｺ・ｾ邵ｺ蟶呻ｽ鍋ｸｲ繝ｻ        }
         }
     }
+
+
 }
+

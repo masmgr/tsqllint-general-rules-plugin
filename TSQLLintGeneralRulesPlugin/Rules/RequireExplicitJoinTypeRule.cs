@@ -8,33 +8,30 @@ namespace TSQLLintGeneralRulesPlugin
     /// <summary>
     /// Requires the explicit specification of JOIN types (INNER, LEFT OUTER, RIGHT OUTER, or FULL OUTER).
     /// </summary>
-    public sealed class RequireExplicitJoinTypeRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class RequireExplicitJoinTypeRule : SqlLintRuleBase
     {
-        private readonly Action<string, string, int, int> _errorCallback;
-
         /// <summary>
         /// Initializes the rule.
         /// </summary>
         /// <param name="errorCallback">Callback invoked when a violation is detected.</param>
-        public RequireExplicitJoinTypeRule(Action<string, string, int, int> errorCallback)
+        public RequireExplicitJoinTypeRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
 
         /// <summary>
         /// Gets the rule ID.
         /// </summary>
-        public string RULE_NAME => "require-explicit-join-type";
+        public override string RULE_NAME => "require-explicit-join-type";
 
         /// <summary>
         /// Gets the violation message.
         /// </summary>
-        public string RULE_TEXT => "JOIN must be explicit: use INNER JOIN, LEFT OUTER JOIN, RIGHT OUTER JOIN, or FULL OUTER JOIN.";
+        public override string RULE_TEXT => "JOIN must be explicit: use INNER JOIN, LEFT OUTER JOIN, RIGHT OUTER JOIN, or FULL OUTER JOIN.";
 
         /// <summary>
         /// Gets the violation severity.
         /// </summary>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
         /// <summary>
         /// Traverses JOIN clauses and reports violations when INNER or OUTER keywords are omitted.
@@ -55,7 +52,7 @@ namespace TSQLLintGeneralRulesPlugin
                 return;
             }
 
-            if (!TryGetJoinTokenRange(node, out var startIndex, out var endIndex))
+            if (!TokenStreamHelper.TryGetTokenRangeBetween(node.FirstTableReference, node.SecondTableReference, out var startIndex, out var endIndex))
             {
                 base.Visit(node);
                 return;
@@ -66,11 +63,11 @@ namespace TSQLLintGeneralRulesPlugin
                 node.QualifiedJoinType == QualifiedJoinType.RightOuter ||
                 node.QualifiedJoinType == QualifiedJoinType.FullOuter;
 
-            if ((requiresInner && !HasToken(tokens, startIndex, endIndex, TSqlTokenType.Inner)) ||
-                (requiresOuter && !HasToken(tokens, startIndex, endIndex, TSqlTokenType.Outer)))
+            if ((requiresInner && !TokenStreamHelper.HasToken(tokens, startIndex, endIndex, TSqlTokenType.Inner)) ||
+                (requiresOuter && !TokenStreamHelper.HasToken(tokens, startIndex, endIndex, TSqlTokenType.Outer)))
             {
                 var (line, column) = GetJoinTokenPosition(tokens, startIndex, endIndex, node);
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, line, column);
+                ReportViolation(line, column);
             }
 
             base.Visit(node);
@@ -82,39 +79,9 @@ namespace TSQLLintGeneralRulesPlugin
         /// <param name="fileLines">Array of lines in the file.</param>
         /// <param name="ruleViolation">The rule violation information.</param>
         /// <param name="actions">Line edit actions.</param>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
             // No automatic fix is provided for this rule.
-        }
-
-        private static bool TryGetJoinTokenRange(QualifiedJoin node, out int startIndex, out int endIndex)
-        {
-            startIndex = -1;
-            endIndex = -1;
-
-            var firstEnd = node.FirstTableReference?.LastTokenIndex ?? -1;
-            var secondStart = node.SecondTableReference?.FirstTokenIndex ?? -1;
-            if (firstEnd < 0 || secondStart < 0 || secondStart <= firstEnd)
-            {
-                return false;
-            }
-
-            startIndex = firstEnd + 1;
-            endIndex = secondStart;
-            return true;
-        }
-
-        private static bool HasToken(IList<TSqlParserToken> tokens, int startIndex, int endIndex, TSqlTokenType tokenType)
-        {
-            for (var i = startIndex; i < endIndex && i < tokens.Count; i++)
-            {
-                if (tokens[i].TokenType == tokenType)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private static (int Line, int Column) GetJoinTokenPosition(
@@ -143,3 +110,5 @@ namespace TSQLLintGeneralRulesPlugin
         }
     }
 }
+
+

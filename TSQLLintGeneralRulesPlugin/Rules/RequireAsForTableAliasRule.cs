@@ -8,33 +8,30 @@ namespace TSQLLintGeneralRulesPlugin
     /// <summary>
     /// Requires the use of the <c>AS</c> keyword for table aliases, including derived tables.
     /// </summary>
-    public sealed class RequireAsForTableAliasRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class RequireAsForTableAliasRule : SqlLintRuleBase
     {
-        private readonly Action<string, string, int, int> _errorCallback;
-
         /// <summary>
         /// Initializes the rule.
         /// </summary>
         /// <param name="errorCallback">Callback invoked when a violation is detected.</param>
-        public RequireAsForTableAliasRule(Action<string, string, int, int> errorCallback)
+        public RequireAsForTableAliasRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
 
         /// <summary>
         /// Gets the rule ID.
         /// </summary>
-        public string RULE_NAME => "require-as-for-table-alias";
+        public override string RULE_NAME => "require-as-for-table-alias";
 
         /// <summary>
         /// Gets the violation message.
         /// </summary>
-        public string RULE_TEXT => "Table aliases must use AS.";
+        public override string RULE_TEXT => "Table aliases must use AS.";
 
         /// <summary>
         /// Gets the violation severity.
         /// </summary>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
         /// <summary>
         /// Traverses table references and reports violations when <c>AS</c> is missing before an alias.
@@ -61,12 +58,9 @@ namespace TSQLLintGeneralRulesPlugin
                 return;
             }
 
-            if (!HasAsKeyword(tokens, tableEnd + 1, aliasStart))
+            if (!TokenStreamHelper.HasToken(tokens, tableEnd + 1, aliasStart, TSqlTokenType.As))
             {
-                _errorCallback?.Invoke(
-                    RULE_NAME,
-                    RULE_TEXT,
-                    node.Alias.StartLine,
+                ReportViolation(node.Alias.StartLine,
                     node.Alias.StartColumn);
             }
         }
@@ -96,12 +90,9 @@ namespace TSQLLintGeneralRulesPlugin
                 return;
             }
 
-            if (!HasAsKeyword(tokens, queryEnd + 1, aliasStart))
+            if (!TokenStreamHelper.HasToken(tokens, queryEnd + 1, aliasStart, TSqlTokenType.As))
             {
-                _errorCallback?.Invoke(
-                    RULE_NAME,
-                    RULE_TEXT,
-                    node.Alias.StartLine,
+                ReportViolation(node.Alias.StartLine,
                     node.Alias.StartColumn);
             }
         }
@@ -112,22 +103,12 @@ namespace TSQLLintGeneralRulesPlugin
         /// <param name="fileLines">Array of lines in the file.</param>
         /// <param name="ruleViolation">The rule violation information.</param>
         /// <param name="actions">Line edit actions.</param>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
             // No automatic fix is provided for this rule.
         }
 
-        private static bool HasAsKeyword(IList<TSqlParserToken> tokens, int start, int end)
-        {
-            for (var i = start; i < end && i < tokens.Count; i++)
-            {
-                if (tokens[i].TokenType == TSqlTokenType.As)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
     }
 }
+
+

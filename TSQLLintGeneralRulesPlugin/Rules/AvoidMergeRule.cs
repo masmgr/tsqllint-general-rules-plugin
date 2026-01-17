@@ -6,59 +6,54 @@ using TSQLLint.Common;
 namespace TSQLLintGeneralRulesPlugin
 {
     /// <summary>
-    /// MERGE ステートメントを避けるべきことを検出するルール。
+    /// Flags MERGE statements because they are prone to bugs and complexity.
     /// </summary>
-    public sealed class AvoidMergeRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class AvoidMergeRule : SqlLintRuleBase
     {
-        private readonly Action<string, string, int, int> _errorCallback;
-
         /// <summary>
-        /// ルールを初期化します。
+        /// Configures the rule with the provided error callback.
         /// </summary>
-        /// <param name="errorCallback">違反が検出されたときに呼び出されるコールバック。</param>
-        public AvoidMergeRule(Action<string, string, int, int> errorCallback)
+        /// <param name="errorCallback">Callback invoked when a violation is detected.</param>
+        public AvoidMergeRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
-
         /// <summary>
-        /// ルールIDを取得します。
+        /// Rule identifier.
         /// </summary>
-        public string RULE_NAME => "avoid-merge";
-
+        public override string RULE_NAME => "avoid-merge";
         /// <summary>
-        /// 違反メッセージを取得します。
+        /// Warns that MERGE is discouraged in favor of separate DML statements.
         /// </summary>
-        public string RULE_TEXT => "MERGE statements should be avoided due to known issues and complexity. Consider using separate INSERT, UPDATE, or DELETE statements.";
-
+        public override string RULE_TEXT => "MERGE statements should be avoided due to known issues and complexity. Consider using separate INSERT, UPDATE, or DELETE statements.";
         /// <summary>
-        /// 違反の重大度を取得します。
+        /// Severity level for this rule.
         /// </summary>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
-
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
         /// <summary>
-        /// MERGE ステートメントを訪問します。
+        /// Reports whenever a MERGE statement is encountered.
         /// </summary>
-        /// <param name="node">訪問するノード。</param>
+        /// <param name="node">MERGE statement to inspect.</param>
         public override void Visit(MergeStatement node)
         {
             if (node != null)
             {
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, node.StartLine, node.StartColumn);
+                ReportViolation(node.StartLine, node.StartColumn);
             }
 
             base.Visit(node);
         }
-
         /// <summary>
-        /// ルール違反を自動修正します。このルールでは自動修正を提供しません。
+        /// Auto-fix is not implemented for this rule.
         /// </summary>
-        /// <param name="fileLines">ファイルの行の配列。</param>
-        /// <param name="ruleViolation">ルール違反情報。</param>
-        /// <param name="actions">行編集アクション。</param>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        /// <param name="fileLines">Source file lines available for modifications.</param>
+        /// <param name="ruleViolation">Violation details to fix.</param>
+        /// <param name="actions">Helper that applies line-level edits.</param>
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
-            // このルールでは自動修正を提供しません。
+            // 縺薙・繝ｫ繝ｼ繝ｫ縺ｧ縺ｯ閾ｪ蜍穂ｿｮ豁｣繧呈署萓帙＠縺ｾ縺帙ｓ縲・        }
         }
     }
+
+
 }
+

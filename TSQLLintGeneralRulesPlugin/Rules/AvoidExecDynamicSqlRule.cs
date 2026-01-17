@@ -8,33 +8,31 @@ namespace TSQLLintGeneralRulesPlugin
     /// <summary>
     /// Detects execution of dynamic SQL using <c>EXEC</c> and recommends using <c>sp_executesql</c> with parameters.
     /// </summary>
-    public sealed class AvoidExecDynamicSqlRule : TSqlFragmentVisitor, ISqlLintRule
+    public sealed class AvoidExecDynamicSqlRule : SqlLintRuleBase
     {
-        private readonly Action<string, string, int, int> _errorCallback;
 
         /// <summary>
         /// Initializes the rule.
         /// </summary>
         /// <param name="errorCallback">Callback invoked when a violation is detected.</param>
-        public AvoidExecDynamicSqlRule(Action<string, string, int, int> errorCallback)
+        public AvoidExecDynamicSqlRule(Action<string, string, int, int> errorCallback) : base(errorCallback)
         {
-            _errorCallback = errorCallback;
         }
 
         /// <summary>
         /// Gets the rule ID.
         /// </summary>
-        public string RULE_NAME => "avoid-exec-dynamic-sql";
+        public override string RULE_NAME => "avoid-exec-dynamic-sql";
 
         /// <summary>
         /// Gets the violation message.
         /// </summary>
-        public string RULE_TEXT => "Avoid EXEC for dynamic SQL. Use sp_executesql with parameters.";
+        public override string RULE_TEXT => "Avoid EXEC for dynamic SQL. Use sp_executesql with parameters.";
 
         /// <summary>
         /// Gets the violation severity.
         /// </summary>
-        public RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
+        public override RuleViolationSeverity RULE_SEVERITY => RuleViolationSeverity.Warning;
 
         /// <summary>
         /// Traverses EXECUTE statements and reports violations when dynamic SQL execution is detected.
@@ -52,7 +50,7 @@ namespace TSQLLintGeneralRulesPlugin
             if (specification?.ExecutableEntity is ExecutableStringList stringList && ContainsDynamicExpression(stringList))
             {
                 GetViolationLocation(node, specification, stringList, out var line, out var column);
-                _errorCallback?.Invoke(RULE_NAME, RULE_TEXT, line, column);
+                ReportViolation(line, column);
             }
 
             base.Visit(node);
@@ -64,7 +62,7 @@ namespace TSQLLintGeneralRulesPlugin
         /// <param name="fileLines">Array of lines in the file.</param>
         /// <param name="ruleViolation">The rule violation information.</param>
         /// <param name="actions">Line edit actions.</param>
-        public void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
+        public override void FixViolation(List<string> fileLines, IRuleViolation ruleViolation, FileLineActions actions)
         {
             // No automatic fix is provided for this rule.
         }
@@ -133,3 +131,5 @@ namespace TSQLLintGeneralRulesPlugin
         }
     }
 }
+
+

@@ -40,5 +40,5 @@ EXEC sys.sp_addextendedproperty
 ## Notes
 
 - This rule assumes one table definition per file and that the MS_Description property is declared alongside the table.
-- Only named parameters are considered; positional arguments are not supported by this implementation.
+- Named parameters are supported. Positional arguments are also supported when the required values are passed as literals (for example: `EXEC sys.sp_addextendedproperty N'MS_Description', ...`).
 - Both `sp_addextendedproperty` and `sp_updateextendedproperty` calls count as fulfilling the requirement.
